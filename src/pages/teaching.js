@@ -9,25 +9,18 @@ export default () => (
 	<div>
 		<Header/>
 		<Layout>
-			<div>
-				<h1><Typist cursor={{hideWhenDone:true, hideWhenDoneDelay:250}}>Teaching</Typist></h1>
-				<table>
-					<tr>
-						<th>Course</th>
-						<th>Role</th>
-						<th>University</th>
-						<th>Dates</th>
-					</tr>
-					{CVData.teaching.map((data, idx) => {
-						return <tr>
-							<td>{data.course}</td>
-							<td>{data.role}</td>
-							<td>{data.university}</td>
-							<td>{data.dates}</td>
-						</tr>
-					})}
-				</table>
-			</div>
+			<h1><Typist cursor={{hideWhenDone:true, hideWhenDoneDelay:250}}>Teaching</Typist></h1>
+			<ul class="nobullet">
+				{CVData.teaching.map((data, index) => {
+					return <ul class="nobullet">
+						<li><b>{data.course}</b></li>
+						<li><i>{data.role}</i></li>
+						<li>{data.university}</li>
+						<li>{data.dates}</li>
+						<br/>
+					</ul>
+				})}
+			</ul>
 		</Layout>
 		<Sidebar/>
 	</div>
