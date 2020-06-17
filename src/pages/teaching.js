@@ -9,7 +9,8 @@ export default () => (
 	<div>
 		<Header/>
 		<Layout>
-			<h1><Typist cursor={{hideWhenDone:true, hideWhenDoneDelay:250}}>Teaching</Typist></h1>
+			// <h1><Typist cursor={{hideWhenDone:true, hideWhenDoneDelay:250}}>Teaching</Typist></h1>
+			<h1>Teaching</h1>
 			<ul class="nobullet">
 				{CVData.teaching.map((data, index) => {
 					return <ul class="nobullet">

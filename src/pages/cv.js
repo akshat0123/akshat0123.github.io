@@ -10,7 +10,8 @@ export default () => (
 		<Header/>
 		<Layout>
 			<div>
-				<h1><Typist cursor={{hideWhenDone:true, hideWhenDoneDelay:250}}>CV</Typist></h1>
+				// <h1><Typist cursor={{hideWhenDone:true, hideWhenDoneDelay:250}}>CV</Typist></h1>
+				<h1>CV</h1>
 				<ul class="nobullet">
 					<li>
 						<h2>Education</h2>
