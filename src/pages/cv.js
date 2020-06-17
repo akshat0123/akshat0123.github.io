@@ -2,7 +2,6 @@ import Sidebar from "../components/sidebar";
 import Header from "../components/header";
 import Layout from "../components/layout";
 import CVData from "../content/cv.json";
-import Typist from "react-typist";
 import React from "react";
 
 export default () => (
@@ -10,7 +9,6 @@ export default () => (
 		<Header/>
 		<Layout>
 			<div>
-				// <h1><Typist cursor={{hideWhenDone:true, hideWhenDoneDelay:250}}>CV</Typist></h1>
 				<h1>CV</h1>
 				<ul class="nobullet">
 					<li>
