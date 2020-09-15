@@ -71,15 +71,24 @@
 
 	"teaching": [
 
+        {
+            "university": "George Washington University",
+            "course": "Machine Learning",
+            "dates": "09/19 - 12/19, 09/20 - Present", 
+            "role": "Graduate Assistant",
+            "duties": [ 
+                "Provided feedback to students on their homework and exams",
+                "Answered student questions on machine learning approaches"
+            ]
+        },
 		{
 			"university": "George Washington University",
 			"course": "Machine Learning",
 			"role": "Graduate Assistant",
 			"dates": "09/19 - 12/19",
 			"duties": [
-				"Graded and provided comments on student work",
-				"Answered student questions regarding machine learning subject material",
-				"Provided feedback to students on their homework and code"
+				"Provided feedback to students on their homework and code",
+				"Answered student questions regarding machine learning subject material"
 			]
 		},
 
@@ -89,7 +98,6 @@
 			"role": "Grader",
 			"dates": "09/15 - 12/15",
 			"duties": [
-				"Reviewed and corrected student Node.js JavaScript code",
 				"Provided feedback to students on their code and project ideas",
 				"Answered student questons on project development and JavaScript code"
 			]

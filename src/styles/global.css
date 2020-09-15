@@ -47,6 +47,17 @@ html::-webkit-scrollbar {
 	color: white;
 }
 
+li a {
+	text-decoration: none;
+	display: block;
+	color: black;
+}
+
+li a:hover {
+	background-color: black;
+	color: white;
+}
+
 #layout {
 	padding: 100px 25px 25px 25px;
 	box-sizing: border-box;
