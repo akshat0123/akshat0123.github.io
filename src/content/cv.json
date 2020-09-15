@@ -83,9 +83,9 @@
         },
 		{
 			"university": "George Washington University",
-			"course": "Machine Learning",
+			"course": "Introduction to Programming with Python",
 			"role": "Graduate Assistant",
-			"dates": "09/19 - 12/19",
+			"dates": "01/19 - 05/19",
 			"duties": [
 				"Provided feedback to students on their homework and code",
 				"Answered student questions regarding machine learning subject material"
