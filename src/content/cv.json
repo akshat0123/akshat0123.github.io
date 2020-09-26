@@ -35,13 +35,12 @@
 	"research": [
 
 		{
-			"group": "Nokia Bell Labs",
-			"role": "Automated Systems Reliability Intern",
-			"dates": "06/18 - 08/18, 06/19 - 08/19",
+			"group": "AI Bias and Fairness Group, George Washington University",
+			"role": "PhD Student",
+			"dates": "09/19 - Present",
 			"duties": [
-				"Designed pipeline automated diagnosis and repair of cloud architecture faults",
-				"Implemented real-tme anomaly detecton on Openstack cloud architecture",
-				"Trained long short-term memory network to identfy and correct system faults"
+                "Performed analysis of artificial intelligence (AI) bias in ridehailing pricing algorithms in Chicago, resulting in manuscript (Iterative Effect-Size Bias in Ridehailing: Measuring Social Bias in Dynamic Pricing of 100 Million Rides)",
+                "Currently performing analysis of bias in machine learning generated representations of text (Word Embeddings)"
 			]
 		},
 
@@ -64,6 +63,17 @@
 				"Performed statistical analyses on patent insurance claim data",
 				"Created visualizations for statstcal analysis interpretaton",
 				"Wrote map reduce jobs to retrieve patient data across distributed storage"
+			]
+		},
+
+		{
+			"group": "Nokia Bell Labs",
+			"role": "Automated Systems Reliability Intern",
+			"dates": "06/18 - 08/18, 06/19 - 08/19",
+			"duties": [
+				"Designed pipeline automated diagnosis and repair of cloud architecture faults",
+				"Implemented real-tme anomaly detecton on Openstack cloud architecture",
+				"Trained long short-term memory network to identfy and correct system faults"
 			]
 		}
 
