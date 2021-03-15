@@ -1,0 +1,93 @@
+{
+    "experience": [
+        {
+            "employer": "George Washington University, Department of Computer Science",
+            "position": "Graduate Assistant (PhD)",
+            "dates": "09/19 - 12/20",
+            "description": [
+                "Performed analysis of bias in ride-hailing pricing algorithms in Chicago, including data collection, experiment design, and novel metric development; first author of manuscript under submission",
+                "Contributed to analysis of Twitter content for biases related to COVID-19 outbreak, performing state of the art techniques for bias measurement on GloVe word embeddings; 2nd author of paper accepted at IEEE International Conference on Semantic Computing",
+                "Performed teaching assistant role in introductory machine learning course and introductory python programming course"
+            ]
+        },
+
+        {
+            "employer": "UVA Center for Advanced Vision Science",
+            "position": "Software Engineer - Bioinformatics",
+            "dates": "10/17 - 05/19",
+            "description": [
+                "Performed regression analysis on large patient insurance claim dataset to predict patient survival and determine drug efficacy; co-author of two resulting publications in Nature Communications and PNAS",
+                "Ported and analyzed large patient insurance claim data set on a high performance cloud computing platform using Slurm workload manager"
+            ]
+        },
+
+        {
+            "employer": "Nokia Bell Labs",
+            "position": "Software Engineer Intern - Machine Learning",
+            "dates": "06/19 - 08/19, 06/18 - 08/18",
+            "description": [
+                "Designed pipeline for diagnosing and deploying fixes on Openstack cloud architecture using long short-term memory neural network developed using Keras, successfully correcting >80% of detected faults",
+                "Implemented real-time anomaly detection on Openstack cloud architecture using autoencoder neural network developed using Keras",
+                "Project was selected to be presented to Nokia Bell Labs senior leadership and CEO from among all other interns and given Nokia Bell Labs Innovation Project Award"
+            ]
+        },
+
+        {
+            "employer": "Deloitte Consulting LLP",
+            "position": "Business Technology Analyst",
+            "dates": "07/16 - 08/17",
+            "description": [
+                "Led testing and validation of state eligibility notice generation system",
+                "Created design documentation for application additions",
+                "Communicated between client stakeholders and development team to facilitate adaptation of application change requests"
+            ]
+        },
+
+        {
+            "employer": "UMASS Amherst CS 326: Web Programming",
+            "position": "Grader",
+            "dates": "07/16 - 08/17",
+            "description": [
+                "Reviewed and corrected student Node.js JavaScript code",
+                "Provided feedback to students on their code and project ideas",
+                "Directed student project development and JavaScript programming"
+            ]
+        },
+
+        {
+            "employer": "ConvergeHealth",
+            "position": "Software Engineer Intern",
+            "dates": "06/15 - 08/15, 06/14 - 08/14",
+            "description": [
+                "Debugged and extended multiple pieces of data mining software",
+                "Created user interface for an application demo system",
+                "Created demo presentations for data mining applications"
+            ]
+        }
+    ],
+
+	"education": [
+
+		{
+			"university": "University of Virginia",
+			"degree": "Master of Science",
+			"subject": "Computer Science",
+			"dates": "09/17 - 05/19"
+		},
+
+		{
+			"university": "University of Massachusetts at Amherst",
+			"degree": "Bachelor of Science",
+			"subject": "Computer Science",
+			"dates": "09/11 - 05/16"
+		},
+
+		{
+			"university": "University of Massachusetts at Amherst",
+			"degree": "Bachelor of Arts",
+			"subject": "Philosophy",
+			"dates": "09/11 - 05/16"
+		}
+
+	]
+}

@@ -10,7 +10,7 @@ class Sidebar extends Component {
 					<h2>Akshat Pandey</h2>
 					<img src={headshot} alt="" />
 					<div id="media">
-						<ul class="nobullet">
+						<ul className="nobullet">
 							<li><a href="https://linkedin.com/in/akshatpandey" target="_blank" rel="noopener noreferrer">Linkedin</a></li>
 							<li><a href="https://github.com/akshat0123" target="_blank" rel="noopener noreferrer">Github</a></li>
 						</ul>

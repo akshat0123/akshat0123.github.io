@@ -74,6 +74,16 @@ li a:hover {
 	padding: 2px;
 }
 
+#blogcontainer {
+    padding: 100px;
+    display: table;
+    margin: 0 auto;
+}
+
+.katex {
+    font-size: 1em !important;
+}
+
 #sidebar {
 	border-left: dashed;
 	border-width: 2px;

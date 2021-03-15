@@ -10,15 +10,11 @@ export default () => (
 			<div>
 				<h1>About Me</h1>
 				<p>
-					I am a PhD student in computer science at George Washington
-					University. My advisor is Professor Aylin Caliskan and my
-					primary research interest is in bias and fairness in machine
-					learning.
+                  Software Engineer with a focus on machine learning and data science application development, including work with Python, NumPy, PyTorch, SQL, GCP, and AWS – in addition to a Master’s degree. Available to relocate nationwide.
 				</p>
-				<h1>Research</h1>
+				<h1>Interests</h1>
 				<p>
-					Bias and Fairness in AI, Natural Language Processing,
-					Machine Learning
+					Machine Learning, Natural Language Processing, Bias and Fairness in AI
 				</p>
 			</div>
 		</Layout>

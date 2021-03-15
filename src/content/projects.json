@@ -1,0 +1,57 @@
+{
+    "research": [
+        {
+            "title": "Iterative Effect-Size Bias in Ridehailing: Measuring Social Bias in Dynamic Pricing of 100 Million Rides",
+            "authors": [ 
+                "Akshat Pandey, ",
+                "Aylin Caliskan "
+            ],
+            "location": "Manuscript",
+            "link": "https://arxiv.org/abs/2006.04599"
+        },
+        {
+            "title": "Automatically Characterizing Targeted Information Operations Through Biases Present in Discourse on Twitter",
+            "authors": [ 
+                "Autumn Toney, ",
+                "Akshat Pandey, ", 
+                "Wei Guo, ", 
+                "David Broniatowski, ", 
+                "Aylin Caliskan "
+            ],
+            "location": "2021 IEEE 15th International Conference on Semantic Computing (ICSC), Laguna Hills, CA, USA, 2021 pp. 82-83",
+            "link": "https://arxiv.org/abs/2004.08726"
+        },
+        {
+            "title": "Towards Semantic Search in Building Metadata",
+            "authors": [
+                "Akshat Pandey "
+            ],
+            "location": "Master's Thesis",
+            "link": "https://doi.org/10.18130/v3-xb0r-wk37"
+        },
+        {
+            "title": "Cytoplasmic synthesis of endogenous Alu complementary DNA via reverse transcription and implications in age-related macular degeneration",
+            "authors": [
+                "Shinichi Fukuda, ", 
+                "..., ", 
+                "Akshat Pandey, ", 
+                "..., ",
+                "Jayakrishna Ambati "
+            ],
+            "location": "Proceedings of the National Academy of Sciences Feb 2021, 118 (6) e2022751118",
+            "link": "https://doi.org/10.1073/pnas.2022751118"
+        }, 
+        {
+            "title": "Repurposing anti-inflammasome NRTIs for improving insulin sensitivity and reducing type 2 diabetes development",
+            "authors": [
+                "Jayakrishna Ambati", 
+                "..., ",
+                "Akshat Pandey", 
+                "..., ",
+                "Bradley D. Gelfand"
+            ],
+            "location": "Nat Commun 11, 4737 (2020)",
+            "link": "https://doi.org/10.1038/s41467-020-18528-z"
+        }
+    ]
+}
