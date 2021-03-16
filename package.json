@@ -15,8 +15,10 @@
     "deploy": "gatsby build && gh-pages -d public -b master"
   },
   "dependencies": {
+    "@deckdeckgo/highlight-code": "^2.5.1",
     "gatsby": "^2.32.9",
     "gatsby-plugin-sharp": "^3.0.1",
+    "gatsby-remark-highlight-code": "^2.2.0",
     "gatsby-remark-images": "^4.0.0",
     "gatsby-remark-katex": "^4.0.0",
     "gatsby-source-filesystem": "^3.0.0",

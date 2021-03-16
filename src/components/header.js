@@ -10,9 +10,7 @@ class Header extends Component {
 					<li><h3><Link to="/">Home</Link></h3></li>
 					<li><h3><Link to="/experience/">Experience</Link></h3></li>
 					<li><h3><Link to="/projects/">Projects</Link></h3></li>
-                    {
-					// <li><h3><Link to="/blog/">Blog</Link></h3></li>
-                    }
+					<li><h3><Link to="/blog/">Blog</Link></h3></li>
 				</ul>
 			</div>
 		);

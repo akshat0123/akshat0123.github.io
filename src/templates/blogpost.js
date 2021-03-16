@@ -1,9 +1,11 @@
+import { defineCustomElements as deckDeckGoHighlightElement } from '@deckdeckgo/highlight-code/dist/loader';
 import Header from "../components/header";
 import { graphql } from "gatsby"
 import "katex/dist/katex.min.css"
 import React from "react"
 
 export default function Template({ data }) {
+    deckDeckGoHighlightElement();
     const { markdownRemark } = data // data.markdownRemark holds your post data
     const { frontmatter, html } = markdownRemark
     return (<div id="blogcontainer" className="blog-post-container">
