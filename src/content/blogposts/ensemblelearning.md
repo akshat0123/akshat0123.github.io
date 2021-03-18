@@ -3,7 +3,7 @@ slug: "/blog/ensemblelearning"
 date: "2021-03-15"
 title: "Ensemble Learning"
 category: "Machine Learning"
-order: 5
+order: 6
 ---
 
 ### Introduction
@@ -308,3 +308,8 @@ $$
     &=  p_i - y_i\\
 \end{aligned}
 $$
+
+### Resources
+- Russell, Stuart J., et al. Artificial Intelligence: A Modern Approach. 3rd ed, Prentice Hall, 2010.
+- Bendersky, Eli. “The Softmax Function and Its Derivative.” Eli Bendersky’s Website. 2016. https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/. Accessed 17 Mar. 2021.
+- Liu, Ethen. Gradient Boosting Machine (GBM). http://ethen8181.github.io/machine-learning/trees/gbm/gbm.html. Accessed 17 Mar. 2021.

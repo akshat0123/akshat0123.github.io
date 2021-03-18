@@ -3,7 +3,7 @@ slug: "/blog/decisiontrees"
 date: "2021-03-15"
 title: "Decision Trees"
 category: "Machine Learning"
-order: 4
+order: 5
 ---
 
 ### Introduction
@@ -440,3 +440,7 @@ class DecisionTreeClassifier:
                 right = self.buildTree(x[rargs], y[rargs], classes, depth+1, maxDepth, leafSize)
                 return Node(left, right, attribute, value)
 ```
+
+### Resources
+- Russell, Stuart J., et al. Artificial Intelligence: A Modern Approach. 3rd ed, Prentice Hall, 2010.
+- Hastie, Trevor, et al. The Elements of Statistical Learning: Data Mining, Inference, and Prediction. Springer, 2009.

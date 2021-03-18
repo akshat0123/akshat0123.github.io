@@ -161,3 +161,7 @@ $$
     &\propto x_i(y-h(x))\\
 \end{aligned}
 $$
+
+### Resources
+- Russell, Stuart J., et al. Artificial Intelligence: A Modern Approach. 3rd ed, Prentice Hall, 2010.
+- Burkov, Andriy. The Hundred Page Machine Learning Book. 2019.

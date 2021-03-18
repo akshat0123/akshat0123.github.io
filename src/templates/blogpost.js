@@ -8,13 +8,15 @@ export default function Template({ data }) {
     deckDeckGoHighlightElement();
     const { markdownRemark } = data // data.markdownRemark holds your post data
     const { frontmatter, html } = markdownRemark
-    return (<div id="blogcontainer" className="blog-post-container">
-        <Header/>
-        <div className="blog-post">
-            <h1>{frontmatter.title}</h1>
-            <div className="blog-post-content" dangerouslySetInnerHTML={{ __html: html }}/>
+    return (
+        <div id="blogcontainer" className="blog-post-container">
+            <Header/>
+            <div id="blogpost">
+                <h1>{frontmatter.title}</h1>
+                <div className="blog-post-content" dangerouslySetInnerHTML={{ __html: html }}/>
+            </div>
         </div>
-    </div>)
+    )
 }
 
 export const pageQuery = graphql`

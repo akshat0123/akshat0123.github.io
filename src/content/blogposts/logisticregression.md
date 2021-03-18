@@ -145,8 +145,6 @@ class LogisticRegressionClassifier:
         """
 
         return torch.sum(x * (hx - y), dim=0) / x.shape[0]
-
-
 ```
 
 ### Derivations
@@ -210,3 +208,7 @@ $$
     &= x_i [\sigma(z)- y] \\
 \end{aligned}
 $$
+
+### Resources
+- Jurafsky, Daniel, and James H. Martin. Speech and Language Processing: An Introduction to Natural Language Processing, Computational Linguistics, and Speech Recognition. Pearson, 2020.
+- Russell, Stuart J., et al. Artificial Intelligence: A Modern Approach. 3rd ed, Prentice Hall, 2010.
