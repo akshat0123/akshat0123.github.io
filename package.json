@@ -17,6 +17,7 @@
   "dependencies": {
     "@deckdeckgo/highlight-code": "^2.5.1",
     "gatsby": "^2.32.9",
+    "gatsby-plugin-google-gtag": "^3.1.0",
     "gatsby-plugin-sharp": "^3.0.1",
     "gatsby-remark-highlight-code": "^2.2.0",
     "gatsby-remark-images": "^4.0.0",

@@ -33,6 +33,14 @@ module.exports = {
               ],
             },
         },
-        `gatsby-plugin-sharp`
+        `gatsby-plugin-sharp`,
+        {
+            resolve: `gatsby-plugin-google-gtag`,
+            options: {
+                trackingIds: [
+                    "G-M8Y04F3FJN"
+                ]
+            }
+        }
     ]
 }
