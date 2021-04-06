@@ -2,7 +2,7 @@
 slug: "/blog/perceptronlearning"
 date: "2021-03-15"
 title: "Perceptron Learning"
-category: "Machine Learning"
+category: "1 Machine Learning"
 order: 4
 ---
 

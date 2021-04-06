@@ -2,7 +2,7 @@
 slug: "/blog/decisiontrees"
 date: "2021-03-15"
 title: "Decision Trees"
-category: "Machine Learning"
+category: "1 Machine Learning"
 order: 5
 ---
 

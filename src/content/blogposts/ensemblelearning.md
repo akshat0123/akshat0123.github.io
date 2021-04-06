@@ -2,7 +2,7 @@
 slug: "/blog/ensemblelearning"
 date: "2021-03-15"
 title: "Ensemble Learning"
-category: "Machine Learning"
+category: "1 Machine Learning"
 order: 6
 ---
 

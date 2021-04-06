@@ -2,7 +2,7 @@
 slug: "/blog/logisticregression"
 date: "2021-03-15"
 title: "Logistic Regression"
-category: "Machine Learning"
+category: "1 Machine Learning"
 order: 2
 ---
 
