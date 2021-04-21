@@ -143,11 +143,14 @@ $$
 
 ```python
 def L1Regularizer(w: torch.Tensor) -> torch.Tensor:
-    """
+    """ Perform L1 Regularization
 
     Args:
+        w: weight vector
 
     Returns:
+        regularization penalty
+        regularization gradient
     """
 
     penalty = torch.sum(torch.abs(torch.clone(w)))
@@ -176,11 +179,14 @@ $$
 
 ```python
 def L2Regularizer(w: torch.Tensor) -> torch.Tensor:
-    """
+    """ Perform L2 Regularization
 
     Args:
+        w: weight vector
 
     Returns:
+        regularization penalty
+        regularization gradient
     """
 
     penalty = torch.sum(torch.square(torch.clone(w)))
