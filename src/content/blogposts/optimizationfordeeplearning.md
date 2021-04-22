@@ -6,7 +6,7 @@ category: "2 Deep Learning"
 order: 4
 ---
 
-### Optimization
+### Introduction
 
 Optimization is the process used to minimize the loss function during the training process of a neural network.
 There are a variety of different approaches to optimization.
