@@ -107,9 +107,10 @@ function notCalledFunction() {
   }
 
   const rootElement = document.getElementById(`___gatsby`);
+  const focusEl = document.getElementById(`gatsby-focus-wrapper`);
   const renderer = (0, _apiRunnerBrowser.apiRunner)(`replaceHydrateFunction`, undefined, // Client only pages have any empty body so we just do a normal
   // render to avoid React complaining about hydration mis-matches.
-  document.getElementById(`___gatsby`).children.length === 0 ? _reactDom.default.render : _reactDom.default.hydrate)[0];
+  focusEl && focusEl.children.length > 0 ? _reactDom.default.hydrate : _reactDom.default.render)[0];
   let dismissLoadingIndicator;
 
   if (process.env.GATSBY_EXPERIMENTAL_QUERY_ON_DEMAND && process.env.GATSBY_QUERY_ON_DEMAND_LOADING_INDICATOR === `true`) {

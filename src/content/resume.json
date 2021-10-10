@@ -1,6 +1,12 @@
 {
     "experience": [
         {
+            "employer": "Comcast",
+            "position": "Software Engineer - Machine Learning",
+            "dates": "07/21 - Present",
+            "description": []
+        },
+        {
             "employer": "George Washington University, Department of Computer Science",
             "position": "Graduate Assistant (PhD)",
             "dates": "09/19 - 12/20",
