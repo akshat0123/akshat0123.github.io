@@ -23,7 +23,7 @@ If you are interested, the previously mentioned posts in conjunction with the pr
 Attention is an approach to sequence modeling that attempts to determine the relative importance of every object in an input sequence for a given position in an output sequence.
 In simple terms, when determining the label at a particular position of an output sequence, attention determines which of the members of the input sequence to "pay attention" to most.
 In the following example, given the input, "In the morning I can be grumpy if I don't drink \[blank\]", in determining what the blank token is, some words may matter more than others.
-Given a vocabulary of the following options: "coffee", "juice", and "eggs", the input tokens "morning", "drink", and "grumpy" are clues to that the resulting blank should more likely be "coffee" than "juice" or "eggs", as displayed in the diagram below.
+Given a vocabulary of the following options: "coffee", "juice", and "eggs", the input tokens "morning", "drink", and "grumpy" are clues that the resulting blank should more likely be "coffee" than "juice" or "eggs", as displayed in the diagram below.
 
 
 ![png](images/transformers_5_0.png)
