@@ -13,19 +13,19 @@ The model was introduced in the paper **Attention is All You Need** in 2017 with
 Transformers enable more efficient parallel processing for sequential problems when compared to prior recurrent-connection based approaches.
 Compared to prior models, transformers are very effective at processing long-term dependencies in sequences.
 
-In this post I will be discussing self-attention, multi-headed self attention, the transformer architecture, as some additional mechanisms commonly seen in transformer architectures, including residual connections, layer normalization, and positional embeddings.
+In this post I will be discussing self-attention, multi-headed self attention, the transformer architecture, as well as some additional mechanisms commonly seen in transformer architectures, including residual connections, layer normalization, and positional embeddings.
 For more information on deep learning in general, background on language modeling, or word embeddings it may help to look at my previous posts titled *Classification and Regression with Neural Networks*, *N-Gram Language Models*, and *Word Embeddings*.
 In this post I do not explicitly go over how the learning process works.
-If you are interested the previously mentioned posts in conjunction with the provided computation graphs should be enough to get you started on how these models learn explicitly using backpropagation.
+If you are interested, the previously mentioned posts in conjunction with the provided computation graphs should be enough to get you started on how these models learn explicitly using backpropagation.
 
 ## Self-Attention
 
 Attention is an approach to sequence modeling that attempts to determine the relative importance of every object in an input sequence for a given position in an output sequence.
 In simple terms, when determining the label at a particular position of an output sequence, attention determines which of the members of the input sequence to "pay attention" to most.
 In the following example, given the input, "In the morning I can be grumpy if I don't drink \[blank\]", in determining what the blank token is, some words may matter more than others.
-Given the vocabulary of the following options: "coffee", "juice", and "eggs", the words "morning", "drink", and "grumpy" are clues to that the resulting blank should more likely be "coffee" rather than "juice" or "eggs", as displayed in the diagram below.
+Given a vocabulary of the following options: "coffee", "juice", and "eggs", the input tokens "morning", "drink", and "grumpy" are clues to that the resulting blank should more likely be "coffee" than "juice" or "eggs", as displayed in the diagram below.
 
-    
+
 ![png](images/transformers_5_0.png)
     
 
@@ -33,6 +33,7 @@ Given the vocabulary of the following options: "coffee", "juice", and "eggs", th
 Attention is a mechanism that takes in a query and a set of key value pairs as input and produces a weighted sum of values as outputs, where the weight of each value is determined by a comparison between the query and the respective key for the value. 
 In self-attention, given an input sequence $x_1, ..., x_N$, each member of the sequence plays the role of query and key, resulting in comparisons between every member of the sequence with every other member of the sequence.
 The calculation of a single self-attention output is displayed below:
+
 $$
 \begin{aligned}
     y_i &= 
