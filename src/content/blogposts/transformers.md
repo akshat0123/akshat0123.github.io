@@ -55,7 +55,7 @@ The computation graph below displays the first self-attention outputs assuming a
     
 
 
-The computation graph above displays the calculate required for a single $y$ output given input sequence $\{x_1, x_2, x_3\}$.
+The computation graph above displays the calculations required for a single $y$ output given input sequence $\{x_1, x_2, x_3\}$.
 Self-attention computations can be batched such that all $y$ outputs can be calculated in parallel by using matrices $Q, K, V$ rather than single $q, k, v$ vectors.
 The calculation of self attention for all inputs $X$ is shown below:
 
