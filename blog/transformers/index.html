@@ -3,38 +3,38 @@
 The model was introduced in the paper <strong>Attention is All You Need</strong> in 2017 with experiments on machine translation and constituency parsing in English.
 Transformers enable more efficient parallel processing for sequential problems when compared to prior recurrent-connection based approaches.
 Compared to prior models, transformers are very effective at processing long-term dependencies in sequences.</p>
-<p>In this post I will be discussing self-attention, multi-headed self attention, the transformer architecture, as some additional mechanisms commonly seen in transformer architectures, including residual connections, layer normalization, and positional embeddings.
+<p>In this post I will be discussing self-attention, multi-headed self attention, the transformer architecture, as well as some additional mechanisms commonly seen in transformer architectures, including residual connections, layer normalization, and positional embeddings.
 For more information on deep learning in general, background on language modeling, or word embeddings it may help to look at my previous posts titled <em>Classification and Regression with Neural Networks</em>, <em>N-Gram Language Models</em>, and <em>Word Embeddings</em>.
 In this post I do not explicitly go over how the learning process works.
-If you are interested the previously mentioned posts in conjunction with the provided computation graphs should be enough to get you started on how these models learn explicitly using backpropagation.</p>
+If you are interested, the previously mentioned posts in conjunction with the provided computation graphs should be enough to get you started on how these models learn explicitly using backpropagation.</p>
 <h2>Self-Attention</h2>
 <p>Attention is an approach to sequence modeling that attempts to determine the relative importance of every object in an input sequence for a given position in an output sequence.
 In simple terms, when determining the label at a particular position of an output sequence, attention determines which of the members of the input sequence to "pay attention" to most.
 In the following example, given the input, "In the morning I can be grumpy if I don't drink [blank]", in determining what the blank token is, some words may matter more than others.
-Given the vocabulary of the following options: "coffee", "juice", and "eggs", the words "morning", "drink", and "grumpy" are clues to that the resulting blank should more likely be "coffee" rather than "juice" or "eggs", as displayed in the diagram below.</p>
+Given a vocabulary of the following options: "coffee", "juice", and "eggs", the input tokens "morning", "drink", and "grumpy" are clues to that the resulting blank should more likely be "coffee" than "juice" or "eggs", as displayed in the diagram below.</p>
 <p><span
       class="gatsby-resp-image-wrapper"
       style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 800px; "
     >
       <a
     class="gatsby-resp-image-link"
-    href="/static/c08f3ef0e3480853693663acd929ca28/5a190/transformers_5_0.png"
+    href="/static/f3131a50db74d4b8897fdb9afdba210f/5a190/transformers_5_0.png"
     style="display: block"
     target="_blank"
     rel="noopener"
   >
     <span
     class="gatsby-resp-image-background-image"
-    style="padding-bottom: 78.22222222222223%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAQCAYAAAAWGF8bAAAACXBIWXMABJPgAAST4AGIAg1vAAAA0ElEQVQ4y61Uiw6DIBCrhw98wDb//2MXTG9pjHORSXJSw1mOlhMAOsZtowfQflkLAJ7MiQAeABbOiTgDmADMxFuyV2gkKdEwaSUuawMjCh6Eo8wb63pwbKuVwnduiZXMaggbhh/TyUOtKa6B62mqR83woxpJGqmup5NB8MR5FneLSSPxpxqTik02y1cJyz17ScUdCaxWR9tVhH81DFJJOLjc1dfGduQ4acmfLnei3V6OLM6PNG2U9ov81vH2SCddkUTThe9ZcBLHF+/lfNe/6w2jzQQv9N70EwAAAABJRU5ErkJggg=='); background-size: cover; display: block;"
+    style="padding-bottom: 78.22222222222223%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAQCAYAAAAWGF8bAAAACXBIWXMABJPgAAST4AGIAg1vAAAA0klEQVQ4y61UiwrDIAy8xr4fbuv/f+xQLuOQriuuQjAYuZyXRADoaLetHkD7JRYAPHlnBPAAsHLf6EcAM4CFfr7sDI0gyRpe2umn2EAbxR8EI+0ZdT94ttVK4Zlb+gpmNYANzZ/p4KG2KK6B62mqR83ypxpBGmHXs5ItkyR/Kiq78GxisT5sTBibJItMcBkw9dlLGHcEsFodrWCEfzUMwiQcNHd121gBjpOR/FnlTrQr5YiSdKIUczF+vVgObCdTsUnCVT6HlTH/JGbumUG86+96A5lBBCfQ2uhXAAAAAElFTkSuQmCC'); background-size: cover; display: block;"
   ></span>
   <img
         class="gatsby-resp-image-image"
         alt="png"
         title="png"
-        src="/static/c08f3ef0e3480853693663acd929ca28/5a190/transformers_5_0.png"
-        srcset="/static/c08f3ef0e3480853693663acd929ca28/3684f/transformers_5_0.png 225w,
-/static/c08f3ef0e3480853693663acd929ca28/fc2a6/transformers_5_0.png 450w,
-/static/c08f3ef0e3480853693663acd929ca28/5a190/transformers_5_0.png 800w"
+        src="/static/f3131a50db74d4b8897fdb9afdba210f/5a190/transformers_5_0.png"
+        srcset="/static/f3131a50db74d4b8897fdb9afdba210f/3684f/transformers_5_0.png 225w,
+/static/f3131a50db74d4b8897fdb9afdba210f/fc2a6/transformers_5_0.png 450w,
+/static/f3131a50db74d4b8897fdb9afdba210f/5a190/transformers_5_0.png 800w"
         sizes="(max-width: 800px) 100vw, 800px"
         style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
         loading="lazy"
@@ -73,7 +73,7 @@ The computation graph below displays the first self-attention outputs assuming a
     >
       <a
     class="gatsby-resp-image-link"
-    href="/static/bc3208ab7eba985287da95b72cb76f65/eb2af/transformers_7_0.png"
+    href="/static/f5ae6252cac6918a50112820152ab851/eb2af/transformers_7_0.png"
     style="display: block"
     target="_blank"
     rel="noopener"
@@ -86,11 +86,11 @@ The computation graph below displays the first self-attention outputs assuming a
         class="gatsby-resp-image-image"
         alt="png"
         title="png"
-        src="/static/bc3208ab7eba985287da95b72cb76f65/1cfc2/transformers_7_0.png"
-        srcset="/static/bc3208ab7eba985287da95b72cb76f65/3684f/transformers_7_0.png 225w,
-/static/bc3208ab7eba985287da95b72cb76f65/fc2a6/transformers_7_0.png 450w,
-/static/bc3208ab7eba985287da95b72cb76f65/1cfc2/transformers_7_0.png 900w,
-/static/bc3208ab7eba985287da95b72cb76f65/eb2af/transformers_7_0.png 954w"
+        src="/static/f5ae6252cac6918a50112820152ab851/1cfc2/transformers_7_0.png"
+        srcset="/static/f5ae6252cac6918a50112820152ab851/3684f/transformers_7_0.png 225w,
+/static/f5ae6252cac6918a50112820152ab851/fc2a6/transformers_7_0.png 450w,
+/static/f5ae6252cac6918a50112820152ab851/1cfc2/transformers_7_0.png 900w,
+/static/f5ae6252cac6918a50112820152ab851/eb2af/transformers_7_0.png 954w"
         sizes="(max-width: 900px) 100vw, 900px"
         style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
         loading="lazy"
@@ -126,7 +126,7 @@ The computation graph below displays the batched version of self-attention.</p>
     >
       <a
     class="gatsby-resp-image-link"
-    href="/static/078440d617e0d363119e519ee701e790/5a190/transformers_9_0.png"
+    href="/static/32db1277e2b1505bf773ddfb01b387b2/5a190/transformers_9_0.png"
     style="display: block"
     target="_blank"
     rel="noopener"
@@ -139,10 +139,10 @@ The computation graph below displays the batched version of self-attention.</p>
         class="gatsby-resp-image-image"
         alt="png"
         title="png"
-        src="/static/078440d617e0d363119e519ee701e790/5a190/transformers_9_0.png"
-        srcset="/static/078440d617e0d363119e519ee701e790/3684f/transformers_9_0.png 225w,
-/static/078440d617e0d363119e519ee701e790/fc2a6/transformers_9_0.png 450w,
-/static/078440d617e0d363119e519ee701e790/5a190/transformers_9_0.png 800w"
+        src="/static/32db1277e2b1505bf773ddfb01b387b2/5a190/transformers_9_0.png"
+        srcset="/static/32db1277e2b1505bf773ddfb01b387b2/3684f/transformers_9_0.png 225w,
+/static/32db1277e2b1505bf773ddfb01b387b2/fc2a6/transformers_9_0.png 450w,
+/static/32db1277e2b1505bf773ddfb01b387b2/5a190/transformers_9_0.png 800w"
         sizes="(max-width: 800px) 100vw, 800px"
         style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
         loading="lazy"
@@ -161,7 +161,7 @@ The outputs of each head <span class="katex"><span class="katex-mathml"><math xm
     >
       <a
     class="gatsby-resp-image-link"
-    href="/static/41fb65fd66386129f81f21a3b3ee3453/0a47e/transformers_11_0.png"
+    href="/static/bbd2b030508c38224be57c2df7a4786f/0a47e/transformers_11_0.png"
     style="display: block"
     target="_blank"
     rel="noopener"
@@ -174,10 +174,10 @@ The outputs of each head <span class="katex"><span class="katex-mathml"><math xm
         class="gatsby-resp-image-image"
         alt="png"
         title="png"
-        src="/static/41fb65fd66386129f81f21a3b3ee3453/0a47e/transformers_11_0.png"
-        srcset="/static/41fb65fd66386129f81f21a3b3ee3453/3684f/transformers_11_0.png 225w,
-/static/41fb65fd66386129f81f21a3b3ee3453/fc2a6/transformers_11_0.png 450w,
-/static/41fb65fd66386129f81f21a3b3ee3453/0a47e/transformers_11_0.png 600w"
+        src="/static/bbd2b030508c38224be57c2df7a4786f/0a47e/transformers_11_0.png"
+        srcset="/static/bbd2b030508c38224be57c2df7a4786f/3684f/transformers_11_0.png 225w,
+/static/bbd2b030508c38224be57c2df7a4786f/fc2a6/transformers_11_0.png 450w,
+/static/bbd2b030508c38224be57c2df7a4786f/0a47e/transformers_11_0.png 600w"
         sizes="(max-width: 600px) 100vw, 600px"
         style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
         loading="lazy"
@@ -207,7 +207,7 @@ They are added to the input embeddings and can be learned during the training of
     >
       <a
     class="gatsby-resp-image-link"
-    href="/static/e717056c4a4cd42249e6b3f86e7a458a/5a190/transformers_16_0.png"
+    href="/static/7c2843f0db66b36a41706256ce73d1cd/5a190/transformers_16_0.png"
     style="display: block"
     target="_blank"
     rel="noopener"
@@ -220,10 +220,10 @@ They are added to the input embeddings and can be learned during the training of
         class="gatsby-resp-image-image"
         alt="png"
         title="png"
-        src="/static/e717056c4a4cd42249e6b3f86e7a458a/5a190/transformers_16_0.png"
-        srcset="/static/e717056c4a4cd42249e6b3f86e7a458a/3684f/transformers_16_0.png 225w,
-/static/e717056c4a4cd42249e6b3f86e7a458a/fc2a6/transformers_16_0.png 450w,
-/static/e717056c4a4cd42249e6b3f86e7a458a/5a190/transformers_16_0.png 800w"
+        src="/static/7c2843f0db66b36a41706256ce73d1cd/5a190/transformers_16_0.png"
+        srcset="/static/7c2843f0db66b36a41706256ce73d1cd/3684f/transformers_16_0.png 225w,
+/static/7c2843f0db66b36a41706256ce73d1cd/fc2a6/transformers_16_0.png 450w,
+/static/7c2843f0db66b36a41706256ce73d1cd/5a190/transformers_16_0.png 800w"
         sizes="(max-width: 800px) 100vw, 800px"
         style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
         loading="lazy"
