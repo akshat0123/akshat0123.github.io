@@ -79,8 +79,8 @@ The computation graph below displays the batched version of self-attention.
 
 In the formulation shown, words in a sequence $X$ are all compared to each other once.
 However, often words can have multiple different relationships with each other. 
-In order to capture this relationships, in training we often use what is called multi-headed attention. 
-Multi-headed attention involves taking multiple query and key values for each term in the sequence and performing self-attention on each layer, or setting of query and key values.
+In order to capture these relationships, in training we often use what is called multi-headed attention. 
+Multi-headed attention involves taking multiple query and key values for each term in the sequence and performing self-attention on each layer, or each setting of query and key values.
 A computation graph for a multi-headed attention layer is shown below, with 3 heads.
 The outputs of each head ${\alpha_1, \alpha_2, \alpha_3}$ are concatenated at the end and multiplied with a fourth weight matrix ($W^O$) to produce output $Y$.
 
