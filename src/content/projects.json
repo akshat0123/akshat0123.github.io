@@ -1,6 +1,49 @@
 {
     "research": [
         {
+            "title": "WhisTLE: Deeply Supervised, Text-Only Domain Adaptation for Pretrained Speech Recognition Transformers",
+            "authors": [
+                "Akshat Pandey",
+                "Karun Kumar",
+                "Raphael Tang"
+            ],
+            "location": "",
+            "link": "https://arxiv.org/abs/2509.10452"
+        },
+        {
+            "title": "SpeechNet: Weakly Supervised, End-to-End Speech Recognition at Industrial Scale",
+            "authors": [
+                "Raphael Tang", 
+                "Karun Kumar", 
+                "Gefei Yang", 
+                "Akshat Pandey", 
+                "Yajie Mao", 
+                "Vladislav Belyaev", 
+                "Madhuri Emmadi", 
+                "Craig Murray", 
+                "Ferhan Ture", 
+                "Jimmy Lin"
+            ],
+            "location": "Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing: Industry Track",
+            "link": "https://arxiv.org/abs/2211.11740"
+        },
+        {
+            "title": "What the DAAM: Interpreting Stable Diffusion Using Cross Attention",
+            "authors": [
+                "Raphael Tang", 
+                "Linqing Liu", 
+                "Akshat Pandey", 
+                "Zhiying Jiang", 
+                "Gefei Yang", 
+                "Karun Kumar", 
+                "Pontus Stenetorp", 
+                "Jimmy Lin", 
+                "Ferhan Ture"
+            ],
+            "location": "Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+            "link": "https://arxiv.org/abs/2210.04885"
+        },
+        {
             "title": "Disparate Impact of Artificial Intelligence Bias in Ridehailing Economy's Price Discrimination Algorithms",
             "authors": [ 
                 "Akshat Pandey, ",
