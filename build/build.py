@@ -8,7 +8,7 @@ import markdown
 def main():
 
     # Main
-    shutil.rmtree('../output')
+    shutil.rmtree('../output', ignore_errors=True)
     os.mkdir('../output')
     shutil.copy("templates/index.html", "../output/index.html")
 

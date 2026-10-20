@@ -1,7 +1,9 @@
 body {
-    text-align: center;
+    display: grid;
+    place-items: center;
 }
 
-img {
-    max-width: 200px;
+
+img, .about {
+    max-width: 300px;
 }
