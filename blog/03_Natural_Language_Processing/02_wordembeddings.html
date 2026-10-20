@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">    <title>Akshat Pandey</title>
     <title>Word Embeddings</title>
     <link rel="stylesheet" href="../../css/blogpage.css">
     <link rel="stylesheet" href="../../css/pygments.css">
@@ -253,7 +253,7 @@ Derivations for each of the displayed gradient calculations can be found in the 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">getUnigramProbs</span><span class="p">(</span><span class="n">dataset</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.75</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate unigram probabilities for all words in dataset. Probabilities</span>
+<span class="w">    </span><span class="sd">""" Calculate unigram probabilities for all words in dataset. Probabilities</span>
 <span class="sd">        are weighted to increase the probability of the rarest words</span>
 
 <span class="sd">    Args:</span>
@@ -263,12 +263,12 @@ Derivations for each of the displayed gradient calculations can be found in the 
 <span class="sd">    Returns:</span>
 <span class="sd">        list of vocabulary terms sorted by highest to lowest probability</span>
 <span class="sd">        list of probabilities corresponding to the list of vocabulary terms</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># Collect unigram counts</span>
     <span class="n">probs</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Calculating Unigram Probabilities&#39;</span><span class="p">):</span>
-        <span class="n">words</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Calculating Unigram Probabilities'</span><span class="p">):</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">' '</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">words</span><span class="p">:</span> 
             <span class="n">probs</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">probs</span> <span class="k">else</span> <span class="mi">1</span>
@@ -286,8 +286,8 @@ Derivations for each of the displayed gradient calculations can be found in the 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">csim</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate cosine similarity between two vectors</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" Calculate cosine similarity between two vectors</span>
+<span class="sd">    """</span>
 
     <span class="n">num</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
     <span class="n">den</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
@@ -295,27 +295,27 @@ Derivations for each of the displayed gradient calculations can be found in the 
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">WeightedSampler</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Implementation of Walker&#39;s Alias method for weighted random sampling</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" Implementation of Walker's Alias method for weighted random sampling</span>
+<span class="sd">    """</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">probs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize weighted sampler class</span>
+<span class="w">        </span><span class="sd">""" Initialize weighted sampler class</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            vocab: list of vocabulary words</span>
 <span class="sd">            probs: list of unigram probabilities for each word</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">buckets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRandomSamplingBuckets</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">probs</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tprob</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">initializeBuckets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">buckets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">tprob</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize list of buckets into one of overfull, underfull and full</span>
+<span class="w">        </span><span class="sd">""" Initialize list of buckets into one of overfull, underfull and full</span>
 <span class="sd">            categories. Buckets are dictionaries containing two vocabulary words</span>
-<span class="sd">            &#39;w1&#39; and &#39;w2&#39;, as well as a splitting probability &#39;s&#39;, and a sum of</span>
-<span class="sd">            probabilities &#39;t&#39;</span>
+<span class="sd">            'w1' and 'w2', as well as a splitting probability 's', and a sum of</span>
+<span class="sd">            probabilities 't'</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            buckets: list of buckets</span>
@@ -325,16 +325,16 @@ Derivations for each of the displayed gradient calculations can be found in the 
 <span class="sd">            list of buckets that are full</span>
 <span class="sd">            list of buckets that are underfull</span>
 <span class="sd">            list of buckets that are overfull</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">full</span><span class="p">,</span> <span class="n">underfull</span><span class="p">,</span> <span class="n">overfull</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
 
         <span class="k">while</span> <span class="n">buckets</span><span class="p">:</span>
             <span class="n">cur</span> <span class="o">=</span> <span class="n">buckets</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">cur</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">tprob</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cur</span><span class="p">[</span><span class="s1">'t'</span><span class="p">]</span> <span class="o">==</span> <span class="n">tprob</span><span class="p">:</span>
                 <span class="n">full</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span>
 
-            <span class="k">elif</span> <span class="n">cur</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">tprob</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">cur</span><span class="p">[</span><span class="s1">'t'</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">tprob</span><span class="p">:</span>
                 <span class="n">underfull</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span>
 
             <span class="k">else</span><span class="p">:</span>
@@ -344,10 +344,10 @@ Derivations for each of the displayed gradient calculations can be found in the 
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">getRandomSamplingBuckets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">probs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">tprob</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Reorganize buckets until each bucket contains two vocabulary words</span>
+<span class="w">        </span><span class="sd">""" Reorganize buckets until each bucket contains two vocabulary words</span>
 <span class="sd">            and all buckets have an equivalent total probability. Buckets are</span>
-<span class="sd">            dictionaries containing two vocabulary words &#39;w1&#39; and &#39;w2&#39;, as well</span>
-<span class="sd">            as a splitting probability &#39;s&#39;, and a sum of probabilities &#39;t&#39;</span>
+<span class="sd">            dictionaries containing two vocabulary words 'w1' and 'w2', as well</span>
+<span class="sd">            as a splitting probability 's', and a sum of probabilities 't'</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            vocab: list of vocabulary words</span>
@@ -356,26 +356,26 @@ Derivations for each of the displayed gradient calculations can be found in the 
 
 <span class="sd">        Returns:</span>
 <span class="sd">            list of buckets s.t. all buckets have two words and the same total probability</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
-        <span class="n">buckets</span> <span class="o">=</span> <span class="p">[</span> <span class="p">{</span><span class="s1">&#39;w1&#39;</span><span class="p">:</span> <span class="n">vocab</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="s1">&#39;w2&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span> <span class="n">probs</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="n">probs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="p">}</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">))</span> <span class="p">]</span>
+        <span class="n">buckets</span> <span class="o">=</span> <span class="p">[</span> <span class="p">{</span><span class="s1">'w1'</span><span class="p">:</span> <span class="n">vocab</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="s1">'w2'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">'s'</span><span class="p">:</span> <span class="n">probs</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="s1">'t'</span><span class="p">:</span> <span class="n">probs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="p">}</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">))</span> <span class="p">]</span>
         <span class="n">full</span><span class="p">,</span> <span class="n">underfull</span><span class="p">,</span> <span class="n">overfull</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initializeBuckets</span><span class="p">(</span><span class="n">buckets</span><span class="p">,</span> <span class="n">tprob</span><span class="p">)</span>
 
         <span class="k">while</span> <span class="n">underfull</span><span class="p">:</span>
             <span class="n">under</span> <span class="o">=</span> <span class="n">underfull</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
             <span class="n">over</span> <span class="o">=</span> <span class="n">overfull</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
 
-            <span class="n">under</span><span class="p">[</span><span class="s1">&#39;w2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">over</span><span class="p">[</span><span class="s1">&#39;w1&#39;</span><span class="p">]</span>
-            <span class="n">under</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tprob</span> 
+            <span class="n">under</span><span class="p">[</span><span class="s1">'w2'</span><span class="p">]</span> <span class="o">=</span> <span class="n">over</span><span class="p">[</span><span class="s1">'w1'</span><span class="p">]</span>
+            <span class="n">under</span><span class="p">[</span><span class="s1">'t'</span><span class="p">]</span> <span class="o">=</span> <span class="n">tprob</span> 
             <span class="n">full</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">under</span><span class="p">)</span>
 
-            <span class="n">over</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">over</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">tprob</span> <span class="o">-</span> <span class="n">under</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">])</span>
-            <span class="n">over</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">over</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">tprob</span> <span class="o">-</span> <span class="n">under</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">])</span>
+            <span class="n">over</span><span class="p">[</span><span class="s1">'t'</span><span class="p">]</span> <span class="o">=</span> <span class="n">over</span><span class="p">[</span><span class="s1">'t'</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">tprob</span> <span class="o">-</span> <span class="n">under</span><span class="p">[</span><span class="s1">'s'</span><span class="p">])</span>
+            <span class="n">over</span><span class="p">[</span><span class="s1">'s'</span><span class="p">]</span> <span class="o">=</span> <span class="n">over</span><span class="p">[</span><span class="s1">'s'</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">tprob</span> <span class="o">-</span> <span class="n">under</span><span class="p">[</span><span class="s1">'s'</span><span class="p">])</span>
 
-            <span class="k">if</span> <span class="n">over</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">tprob</span><span class="p">:</span> 
+            <span class="k">if</span> <span class="n">over</span><span class="p">[</span><span class="s1">'t'</span><span class="p">]</span> <span class="o">==</span> <span class="n">tprob</span><span class="p">:</span> 
                 <span class="n">full</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">over</span><span class="p">)</span>
 
-            <span class="k">elif</span> <span class="n">over</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">tprob</span><span class="p">:</span> 
+            <span class="k">elif</span> <span class="n">over</span><span class="p">[</span><span class="s1">'t'</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">tprob</span><span class="p">:</span> 
                 <span class="n">underfull</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">over</span><span class="p">)</span>                
 
             <span class="k">else</span><span class="p">:</span> 
@@ -386,43 +386,43 @@ Derivations for each of the displayed gradient calculations can be found in the 
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">generateWord</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Generate randomly sampled word </span>
+<span class="w">        </span><span class="sd">""" Generate randomly sampled word </span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            randomly sampled word as string  </span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">bucket</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buckets</span><span class="p">)</span>
         <span class="n">splitval</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tprob</span><span class="p">)</span>
 
         <span class="n">word</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">splitval</span> <span class="o">&gt;=</span> <span class="n">bucket</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">]:</span>
-            <span class="n">word</span> <span class="o">=</span> <span class="n">bucket</span><span class="p">[</span><span class="s1">&#39;w2&#39;</span><span class="p">]</span>                
+        <span class="k">if</span> <span class="n">splitval</span> <span class="o">&gt;=</span> <span class="n">bucket</span><span class="p">[</span><span class="s1">'s'</span><span class="p">]:</span>
+            <span class="n">word</span> <span class="o">=</span> <span class="n">bucket</span><span class="p">[</span><span class="s1">'w2'</span><span class="p">]</span>                
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">word</span> <span class="o">=</span> <span class="n">bucket</span><span class="p">[</span><span class="s1">&#39;w1&#39;</span><span class="p">]</span>                
+            <span class="n">word</span> <span class="o">=</span> <span class="n">bucket</span><span class="p">[</span><span class="s1">'w1'</span><span class="p">]</span>                
 
         <span class="k">return</span> <span class="n">word</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Windows</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Iterator for sequence of windows on list</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" Iterator for sequence of windows on list</span>
+<span class="sd">    """</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">wsize</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate Windows class</span>
+<span class="w">        </span><span class="sd">""" Instantiate Windows class</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            items: list to create windows form</span>
 <span class="sd">            wsize: total number of items to account for on either side of item</span>
-<span class="sd">                Given the list [&#39;this&#39;, &#39;is&#39;, &#39;a&#39;, &#39;test&#39;] with a wsize of 1 the</span>
+<span class="sd">                Given the list ['this', 'is', 'a', 'test'] with a wsize of 1 the</span>
 <span class="sd">                Windows class will return the following windows in a for loop:</span>
-<span class="sd">                    [&#39;this&#39;, &#39;is&#39;]</span>
-<span class="sd">                    [&#39;this&#39;, &#39;is&#39;, &#39;a&#39;]</span>
-<span class="sd">                    [&#39;is&#39;, &#39;a&#39;, &#39;test&#39;]</span>
-<span class="sd">                    [&#39;a&#39;, &#39;test&#39;]</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">                    ['this', 'is']</span>
+<span class="sd">                    ['this', 'is', 'a']</span>
+<span class="sd">                    ['is', 'a', 'test']</span>
+<span class="sd">                    ['a', 'test']</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="o">-</span><span class="p">((</span><span class="n">wsize</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="p">((</span><span class="n">wsize</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="n">items</span> 
@@ -430,17 +430,17 @@ Derivations for each of the displayed gradient calculations can be found in the 
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns iterator</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Returns iterator</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return next available window of list</span>
+<span class="w">        </span><span class="sd">""" Return next available window of list</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            window of items as a list</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cidx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">):</span>
 
@@ -463,19 +463,19 @@ Derivations for each of the displayed gradient calculations can be found in the 
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Word2Vec</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Implementation of Word2Vec word embeddings using skip-gram negative</span>
+<span class="w">    </span><span class="sd">""" Implementation of Word2Vec word embeddings using skip-gram negative</span>
 <span class="sd">        sampling</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">probs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate word2vec class</span>
+<span class="w">        </span><span class="sd">""" Instantiate word2vec class</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            vocab: list of vocabulary words</span>
 <span class="sd">            probs: unigram probabilities of each vocabulary word</span>
 <span class="sd">            d: size of embeddings</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">),</span> <span class="n">d</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">),</span> <span class="n">d</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span>
@@ -485,19 +485,19 @@ Derivations for each of the displayed gradient calculations can be found in the 
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">document</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Split document into tokens on white spaces</span>
+<span class="w">        </span><span class="sd">""" Split document into tokens on white spaces</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            document: string to parse</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            list of parsed tokens </span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vdict</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">document</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vdict</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">document</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">' '</span><span class="p">)]</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">corpus</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">wsize</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Train word2vec model</span>
+<span class="w">        </span><span class="sd">""" Train word2vec model</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            corpus: list of document strings to train on</span>
@@ -505,10 +505,10 @@ Derivations for each of the displayed gradient calculations can be found in the 
 <span class="sd">            wsize: size of window to examine for skip-grams</span>
 <span class="sd">            k: number of negative samples to consider for each positive sample</span>
 <span class="sd">            alpha: learning rate</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">document</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">corpus</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Training Word2Vec Model&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">document</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">corpus</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Training Word2Vec Model'</span><span class="p">):</span>
                 <span class="n">words</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
 
                 <span class="n">cidx</span> <span class="o">=</span> <span class="mi">0</span>
@@ -524,18 +524,18 @@ Derivations for each of the displayed gradient calculations can be found in the 
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">weightUpdate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wi</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">pi</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">cni</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update word2vec weights</span>
+<span class="w">        </span><span class="sd">""" Update word2vec weights</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            wi: list of index for word being trained on</span>
 <span class="sd">            pi: list of index for positive examples</span>
 <span class="sd">            cni: list of indices for negative examples</span>
 <span class="sd">            alpha: learning rate</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># Dot products of positive examples and word and negative examples and word</span>
-        <span class="n">cpw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,kj-&gt;i&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">[[</span><span class="n">pi</span><span class="p">],</span> <span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">wi</span><span class="p">,</span> <span class="p">:])</span>
-        <span class="n">cnw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,kj-&gt;i&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">[</span><span class="n">cni</span><span class="p">,</span> <span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">wi</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">cpw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">'ij,kj-&gt;i'</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">[[</span><span class="n">pi</span><span class="p">],</span> <span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">wi</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">cnw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">'ij,kj-&gt;i'</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">[</span><span class="n">cni</span><span class="p">,</span> <span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">wi</span><span class="p">,</span> <span class="p">:])</span>
 
         <span class="c1"># Sigmoid function run on dot products</span>
         <span class="n">scpw</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">cpw</span><span class="p">)))</span> <span class="o">-</span> <span class="mi">1</span>

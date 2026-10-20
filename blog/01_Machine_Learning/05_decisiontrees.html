@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">    <title>Akshat Pandey</title>
     <title>Decision Trees</title>
     <link rel="stylesheet" href="../../css/blogpage.css">
     <link rel="stylesheet" href="../../css/pygments.css">
@@ -77,7 +77,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 <span class="k">class</span><span class="w"> </span><span class="nc">Node</span><span class="p">:</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate member of Node class</span>
+<span class="w">        </span><span class="sd">""" Instantiate member of Node class</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            left: left child</span>
@@ -86,7 +86,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 <span class="sd">            value: value of attribute to split on</span>
 <span class="sd">            label: majority class label at this node</span>
 <span class="sd">            counts: frequency of each class at this node</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="n">right</span><span class="p">,</span> <span class="n">left</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attribute</span> <span class="o">=</span> <span class="n">attribute</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
@@ -94,7 +94,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">MeanSquaredError</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">yhat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate mean squared error rate</span>
+<span class="w">    </span><span class="sd">""" Calculate mean squared error rate</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        y: true labels</span>
@@ -102,7 +102,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 
 <span class="sd">    Returns:</span>
 <span class="sd">        mean squared error        </span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span> <span class="o">-</span> <span class="n">yhat</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -111,37 +111,37 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxDepth</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">leafSize</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate member of DecisionTreeClassifier class</span>
+<span class="w">        </span><span class="sd">""" Instantiate member of DecisionTreeClassifier class</span>
 
 
 <span class="sd">        Args:</span>
 <span class="sd">            maxDepth: maximum depth to allow when building tree</span>
 <span class="sd">            leafSize: minimum number of members required to split a node </span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">maxDepth</span> <span class="o">=</span> <span class="n">maxDepth</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">leafSize</span> <span class="o">=</span> <span class="n">leafSize</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="kc">None</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Fit decision tree to dataset</span>
+<span class="w">        </span><span class="sd">""" Fit decision tree to dataset</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: training data</span>
 <span class="sd">            y: labels corresponding to x</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buildTree</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">leafSize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">leafSize</span><span class="p">,</span> <span class="n">maxDepth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maxDepth</span><span class="p">)</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Predict label given input</span>
+<span class="w">        </span><span class="sd">""" Predict label given input</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input data</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            tensor of predicted labels</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">y</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">ridx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
@@ -156,7 +156,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">splitValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Determine best split value given an attribute</span>
+<span class="w">        </span><span class="sd">""" Determine best split value given an attribute</span>
 
 <span class="sd">        Args</span>
 <span class="sd">            x: input dataset</span>
@@ -166,9 +166,9 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 <span class="sd">        Returns:</span>
 <span class="sd">            the best split value and the mean squared error of the split at that</span>
 <span class="sd">            value</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
-        <span class="n">mins</span><span class="p">,</span> <span class="n">minval</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="n">mins</span><span class="p">,</span> <span class="n">minval</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"inf"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">sidx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leafSize</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
 
             <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">sidx</span><span class="p">,</span> <span class="n">attribute</span><span class="p">]</span> <span class="o">!=</span> <span class="n">x</span><span class="p">[</span><span class="n">sidx</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">attribute</span><span class="p">]:</span>
@@ -184,7 +184,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">splitAttributeValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Given a dataset, return best (attribute, value) pair to split on</span>
+<span class="w">        </span><span class="sd">""" Given a dataset, return best (attribute, value) pair to split on</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input dataset</span>
@@ -193,10 +193,10 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 <span class="sd">        Returns:</span>
 <span class="sd">            attribute to split on, attribute value to split on, and mean squared</span>
 <span class="sd">            error at that split</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># Find best split attribute, value</span>
-        <span class="n">minj</span><span class="p">,</span> <span class="n">mins</span><span class="p">,</span> <span class="n">minval</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="n">minj</span><span class="p">,</span> <span class="n">mins</span><span class="p">,</span> <span class="n">minval</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"inf"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
 
             <span class="n">xargs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="n">j</span><span class="p">])</span>
@@ -212,7 +212,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">buildTree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxDepth</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">leafSize</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Build decision tree given a dataset</span>
+<span class="w">        </span><span class="sd">""" Build decision tree given a dataset</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input dataset</span>
@@ -223,7 +223,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 
 <span class="sd">        Returns:</span>
 <span class="sd">            root node of tree</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">leafSize</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">maxDepth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">depth</span><span class="o">==</span><span class="n">maxDepth</span><span class="p">):</span>
             <span class="n">label</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
@@ -270,7 +270,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 <span class="k">class</span><span class="w"> </span><span class="nc">Node</span><span class="p">:</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate member of Node class</span>
+<span class="w">        </span><span class="sd">""" Instantiate member of Node class</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            left: left child</span>
@@ -279,7 +279,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 <span class="sd">            value: value of attribute to split on</span>
 <span class="sd">            label: majority class label at this node</span>
 <span class="sd">            counts: frequency of each class at this node</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="n">right</span><span class="p">,</span> <span class="n">left</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attribute</span> <span class="o">=</span> <span class="n">attribute</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
@@ -289,38 +289,38 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 <span class="k">class</span><span class="w"> </span><span class="nc">DecisionTreeClassifier</span><span class="p">:</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxDepth</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">leafSize</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate member of DecisionTreeClassifier class</span>
+<span class="w">        </span><span class="sd">""" Instantiate member of DecisionTreeClassifier class</span>
 
 
 <span class="sd">        Args:</span>
 <span class="sd">            maxDepth: maximum depth to allow when building tree</span>
 <span class="sd">            leafSize: minimum number of members required to split a node </span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">maxDepth</span> <span class="o">=</span> <span class="n">maxDepth</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">leafSize</span> <span class="o">=</span> <span class="n">leafSize</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="kc">None</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">classes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Fit decision tree to dataset</span>
+<span class="w">        </span><span class="sd">""" Fit decision tree to dataset</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: training data</span>
 <span class="sd">            y: labels corresponding to x</span>
 <span class="sd">            classes: list of unique possible labels</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buildTree</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">leafSize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">leafSize</span><span class="p">,</span> <span class="n">maxDepth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maxDepth</span><span class="p">)</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Predict label given input</span>
+<span class="w">        </span><span class="sd">""" Predict label given input</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input data</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            tensor of predicted labels</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">y</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">ridx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
@@ -335,7 +335,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">calcGiniIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">classes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculate gini index value given </span>
+<span class="w">        </span><span class="sd">""" Calculate gini index value given </span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            counts: dictionary of counts for each class</span>
@@ -344,7 +344,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 
 <span class="sd">        Returns:</span>
 <span class="sd">            gini index value</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">probs</span> <span class="o">=</span> <span class="p">{</span> <span class="n">c</span><span class="p">:</span> <span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">/</span> <span class="n">size</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span> <span class="p">}</span>
         <span class="n">gini</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([(</span><span class="n">counts</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">/</span><span class="n">size</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">/</span><span class="n">size</span><span class="p">))</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">])</span>
@@ -352,7 +352,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">splitValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">classes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Determine best split value given an attribute</span>
+<span class="w">        </span><span class="sd">""" Determine best split value given an attribute</span>
 
 <span class="sd">        Args</span>
 <span class="sd">            x: input dataset</span>
@@ -362,9 +362,9 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 
 <span class="sd">        Returns:</span>
 <span class="sd">            the best split value and the gini index of the split at that value</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
-        <span class="n">value</span><span class="p">,</span> <span class="n">purity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="n">value</span><span class="p">,</span> <span class="n">purity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"inf"</span><span class="p">)</span>
 
         <span class="c1"># Initialize counts for splits c1 and c2 to calculate rolling gini index</span>
         <span class="n">c1</span> <span class="o">=</span> <span class="p">{</span> <span class="n">c</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span> <span class="p">}</span>
@@ -387,7 +387,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">splitAttributeValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">classes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Given a dataset, return best (attribute, value) pair to split on</span>
+<span class="w">        </span><span class="sd">""" Given a dataset, return best (attribute, value) pair to split on</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input dataset</span>
@@ -397,9 +397,9 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 <span class="sd">        Returns:</span>
 <span class="sd">            attribute to split on, attribute value to split on, and gini index at</span>
 <span class="sd">            that split</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
-        <span class="n">attribute</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">purity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="n">attribute</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">purity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"inf"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">aidx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
 
             <span class="n">xargs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="n">aidx</span><span class="p">])</span>
@@ -413,7 +413,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">buildTree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">classes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxDepth</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">leafSize</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Build decision tree given a dataset</span>
+<span class="w">        </span><span class="sd">""" Build decision tree given a dataset</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input dataset</span>
@@ -425,7 +425,7 @@ For the purposes of this post, for a decision tree regressor, splitting is perfo
 
 <span class="sd">        Returns:</span>
 <span class="sd">            root node of tree</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">leafSize</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">maxDepth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">depth</span><span class="o">==</span><span class="n">maxDepth</span><span class="p">):</span>
             <span class="n">counts</span> <span class="o">=</span> <span class="p">[(</span><span class="n">c</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span><span class="o">==</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">())</span><span class="o">.</span><span class="n">item</span><span class="p">())</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">]</span>

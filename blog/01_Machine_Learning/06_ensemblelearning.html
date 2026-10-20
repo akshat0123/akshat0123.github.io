@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">    <title>Akshat Pandey</title>
     <title>Ensemble Learning</title>
     <link rel="stylesheet" href="../../css/blogpage.css">
     <link rel="stylesheet" href="../../css/pygments.css">
@@ -64,14 +64,14 @@ It assumes use of the decision tree classifier class described in the earlier po
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">numTrees</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">maxDepth</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">leafSize</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bootstrapRatio</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate random forest classifier</span>
+<span class="w">        </span><span class="sd">""" Instantiate random forest classifier</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            numTrees: number of trees to build</span>
 <span class="sd">            maxDepth: the maximum allowed depth of each tree</span>
 <span class="sd">            leafSize: the minimum number of data points required to split a node </span>
 <span class="sd">            bootstrapRatio: ratio of training data to use for each bootstrap</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">forest</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">numTrees</span> <span class="o">=</span> <span class="n">numTrees</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">maxDepth</span> <span class="o">=</span> <span class="n">maxDepth</span>
@@ -80,13 +80,13 @@ It assumes use of the decision tree classifier class described in the earlier po
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">classes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Fit random forest model to dataset</span>
+<span class="w">        </span><span class="sd">""" Fit random forest model to dataset</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input data</span>
 <span class="sd">            y: input labels</span>
 <span class="sd">            classes: list of unique possible labels</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">trange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numTrees</span><span class="p">):</span>
 
@@ -101,14 +101,14 @@ It assumes use of the decision tree classifier class described in the earlier po
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Predict outcomes given input</span>
+<span class="w">        </span><span class="sd">""" Predict outcomes given input</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input data</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            tensor of class labels            </span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">mode</span><span class="p">(</span>
             <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span>
@@ -160,7 +160,7 @@ It assumes use of the decision tree regressor class described in the earlier pos
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">createOneHotColumn</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">colidx</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Turn single categorical column to one-hot columns</span>
+<span class="w">    </span><span class="sd">""" Turn single categorical column to one-hot columns</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        data: input data</span>
@@ -169,7 +169,7 @@ It assumes use of the decision tree regressor class described in the earlier pos
 <span class="sd">    Returns:</span>
 <span class="sd">        one-hot vectors of specified column</span>
 <span class="sd">        list of column names for new one-hot vectors </span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">ucols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span> <span class="n">colidx</span><span class="p">])</span>
     <span class="n">uidxs</span> <span class="o">=</span> <span class="p">{</span> <span class="n">ucols</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ucols</span><span class="p">))</span> <span class="p">}</span>
@@ -182,14 +182,14 @@ It assumes use of the decision tree regressor class described in the earlier pos
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">Softmax</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Apply softmax function to tensor</span>
+<span class="w">    </span><span class="sd">""" Apply softmax function to tensor</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        x: input tensor</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        tensor with softmax function applied to all members</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
 
@@ -198,25 +198,25 @@ It assumes use of the decision tree regressor class described in the earlier pos
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxDepth</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">leafSize</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initializes GradientBoostedTreeClassifier class</span>
+<span class="w">        </span><span class="sd">""" Initializes GradientBoostedTreeClassifier class</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            maxDepth: maximum depth of internal trees</span>
 <span class="sd">            leafSize: minimum size of node for each tree</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">maxDepth</span> <span class="o">=</span> <span class="n">maxDepth</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">leafSize</span> <span class="o">=</span> <span class="n">leafSize</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">numTrees</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Fit classifier to input data</span>
+<span class="w">        </span><span class="sd">""" Fit classifier to input data</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input data</span>
 <span class="sd">            y: input labels</span>
 <span class="sd">            alpha: alpha parameter for weight update</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">createOneHotColumn</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">numpy</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">numClasses</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -238,7 +238,7 @@ It assumes use of the decision tree regressor class described in the earlier pos
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">probs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">trees</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">DecisionTreeRegressor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Determine probability of belonging to each class</span>
+<span class="w">        </span><span class="sd">""" Determine probability of belonging to each class</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input data</span>
@@ -246,21 +246,21 @@ It assumes use of the decision tree regressor class described in the earlier pos
 
 <span class="sd">        Returns:</span>
 <span class="sd">            probability for each input</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">probs</span> <span class="o">=</span> <span class="p">[</span><span class="n">trees</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trees</span><span class="p">))]</span>
         <span class="k">return</span> <span class="n">Softmax</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Predict labels</span>
+<span class="w">        </span><span class="sd">""" Predict labels</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input data</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            labels for each member of input</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">ypred</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">numClasses</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">trees</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>

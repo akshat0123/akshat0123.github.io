@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">    <title>Akshat Pandey</title>
     <title>Linear Regression</title>
     <link rel="stylesheet" href="../../css/blogpage.css">
     <link rel="stylesheet" href="../../css/pygments.css">
@@ -53,7 +53,7 @@ The derivation for term <span class="arithmatex">\(\frac{\partial L}{\partial w}
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">MeanSquaredError</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">yhat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate mean squared error rate</span>
+<span class="w">    </span><span class="sd">""" Calculate mean squared error rate</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        y: true labels</span>
@@ -61,7 +61,7 @@ The derivation for term <span class="arithmatex">\(\frac{\partial L}{\partial w}
 
 <span class="sd">    Returns:</span>
 <span class="sd">        mean squared error        </span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span> <span class="o">-</span> <span class="n">yhat</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -70,15 +70,15 @@ The derivation for term <span class="arithmatex">\(\frac{\partial L}{\partial w}
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate linear regressor </span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Instantiate linear regressor </span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">calcError</span> <span class="o">=</span> <span class="n">MeanSquaredError</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.00001</span><span class="p">,</span> <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Fit logistic regression classifier to data set</span>
+<span class="w">        </span><span class="sd">""" Fit logistic regression classifier to data set</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input data</span>
@@ -86,11 +86,11 @@ The derivation for term <span class="arithmatex">\(\frac{\partial L}{\partial w}
 <span class="sd">            alpha: alpha parameter for weight update</span>
 <span class="sd">            epochs: number of epochs to train</span>
 <span class="sd">            batch: size of batches for training</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
 
-        <span class="n">epochs</span> <span class="o">=</span> <span class="n">trange</span><span class="p">(</span><span class="n">epochs</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Error&#39;</span><span class="p">)</span>
+        <span class="n">epochs</span> <span class="o">=</span> <span class="n">trange</span><span class="p">(</span><span class="n">epochs</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Error'</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">epochs</span><span class="p">:</span>
 
             <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">batch</span>
@@ -103,25 +103,25 @@ The derivation for term <span class="arithmatex">\(\frac{\partial L}{\partial w}
 
             <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="n">error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calcError</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">hx</span><span class="p">)</span>
-            <span class="n">epochs</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s1">&#39;MSE: </span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">error</span><span class="p">)</span>
+            <span class="n">epochs</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s1">'MSE: </span><span class="si">%.4f</span><span class="s1">'</span> <span class="o">%</span> <span class="n">error</span><span class="p">)</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Predict output values </span>
+<span class="w">        </span><span class="sd">""" Predict output values </span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input data</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            regression output for each member of input</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
 
-        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,kj-&gt;i&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">'ij,kj-&gt;i'</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">)</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">calcGradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">,</span> <span class="n">hx</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculate weight gradient</span>
+<span class="w">        </span><span class="sd">""" Calculate weight gradient</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input data</span>
@@ -130,9 +130,9 @@ The derivation for term <span class="arithmatex">\(\frac{\partial L}{\partial w}
 
 <span class="sd">        Returns:</span>
 <span class="sd">            tensor of gradient values the same size as weights</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
-        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,i-&gt;j&#39;</span><span class="p">,</span> <span class="o">-</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">hx</span><span class="p">))</span> <span class="o">/</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">'ij,i-&gt;j'</span><span class="p">,</span> <span class="o">-</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">hx</span><span class="p">))</span> <span class="o">/</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </code></pre></div>
 
 <h3>Derivations</h3>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">    <title>Akshat Pandey</title>
     <title>Initialization, Regularization, and Dropout</title>
     <link rel="stylesheet" href="../../css/blogpage.css">
     <link rel="stylesheet" href="../../css/pygments.css">
@@ -34,7 +34,7 @@ As networks get larger, the method chosen to initialize the weights can have a s
 <p>Random initialization just means setting the weights of a hidden layer to small random values before beginning training. 
 A common setting is to simply use random weight values in the range <span class="arithmatex">\([-0.1, 0.1]\)</span>.</p>
 <div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">RandomInitializer</span><span class="p">(</span><span class="n">inputdim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns randomly initialized weights in range [-1, 1]</span>
+<span class="w">    </span><span class="sd">""" Returns randomly initialized weights in range [-1, 1]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        inputdim: number of input units         </span>
@@ -42,7 +42,7 @@ A common setting is to simply use random weight values in the range <span class=
 
 <span class="sd">    Returns:</span>
 <span class="sd">        initialized weight tensor            </span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">return</span> <span class="p">((</span><span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="n">inputdim</span><span class="p">,</span> <span class="n">units</span><span class="p">))</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span>
 </code></pre></div>
@@ -58,7 +58,7 @@ Saturation occurs when hidden units become prematurely trapped at a particular v
 \end{aligned}
 \]</div>
 <div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">GlorotInitializer</span><span class="p">(</span><span class="n">inputdim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns weights initialized using Glorot initialization </span>
+<span class="w">    </span><span class="sd">""" Returns weights initialized using Glorot initialization </span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        inputdim: number of input units         </span>
@@ -66,7 +66,7 @@ Saturation occurs when hidden units become prematurely trapped at a particular v
 
 <span class="sd">    Returns:</span>
 <span class="sd">        initialized weight tensor            </span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">tail</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="mi">1</span><span class="o">/</span><span class="n">inputdim</span><span class="p">]))</span>
     <span class="n">weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="n">inputdim</span><span class="p">,</span> <span class="n">units</span><span class="p">))</span> <span class="o">*</span> <span class="n">tail</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">tail</span>
@@ -84,7 +84,7 @@ Saturation occurs when hidden units become prematurely trapped at a particular v
 \end{aligned}
 \]</div>
 <div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">HeInitializer</span><span class="p">(</span><span class="n">inputdim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns weights initialized using He initialization </span>
+<span class="w">    </span><span class="sd">""" Returns weights initialized using He initialization </span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        inputdim: number of input units         </span>
@@ -92,7 +92,7 @@ Saturation occurs when hidden units become prematurely trapped at a particular v
 
 <span class="sd">    Returns:</span>
 <span class="sd">        initialized weight tensor            </span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">tail</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="mi">2</span><span class="o">/</span><span class="n">inputdim</span><span class="p">]))</span>
     <span class="n">weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="n">inputdim</span><span class="p">,</span> <span class="n">units</span><span class="p">))</span> <span class="o">*</span> <span class="n">tail</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">tail</span>
@@ -134,7 +134,7 @@ The <span class="arithmatex">\(\lambda\)</span> constant multiplied to the penal
 \end{aligned}
 \]</div>
 <div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">L1Regularizer</span><span class="p">(</span><span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Perform L1 Regularization</span>
+<span class="w">    </span><span class="sd">""" Perform L1 Regularization</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        w: weight vector</span>
@@ -142,7 +142,7 @@ The <span class="arithmatex">\(\lambda\)</span> constant multiplied to the penal
 <span class="sd">    Returns:</span>
 <span class="sd">        regularization penalty</span>
 <span class="sd">        regularization gradient</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">penalty</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">w</span><span class="p">)))</span>
     <span class="n">grad</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
@@ -165,7 +165,7 @@ The <span class="arithmatex">\(\lambda\)</span> constant multiplied to the penal
 \end{aligned}
 \]</div>
 <div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">L2Regularizer</span><span class="p">(</span><span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Perform L2 Regularization</span>
+<span class="w">    </span><span class="sd">""" Perform L2 Regularization</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        w: weight vector</span>
@@ -173,7 +173,7 @@ The <span class="arithmatex">\(\lambda\)</span> constant multiplied to the penal
 <span class="sd">    Returns:</span>
 <span class="sd">        regularization penalty</span>
 <span class="sd">        regularization gradient</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">penalty</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">w</span><span class="p">)))</span>
     <span class="n">grad</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
@@ -192,12 +192,12 @@ The second graph displays the same neural network but with one hidden unit dropp
 <p>The code below shows an updated version of the <code>DefaltDenseLayer</code> class from my earlier post, titled <em>Classification and Regression with Neural Networks</em>.
 The most significant changes occur in the <code>forward</code> function of the <code>DefaultDenseLayer</code> class.</p>
 <div class="codehilite"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DefaultDenseLayer</span><span class="p">(</span><span class="n">Layer</span><span class="p">):</span> 
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Default dense layer class</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" Default dense layer class</span>
+<span class="sd">    """</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputdim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">activation</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">initializer</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize default dense layer</span>
+<span class="w">        </span><span class="sd">""" Initialize default dense layer</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            inputdim: number of input units</span>
@@ -206,10 +206,10 @@ The most significant changes occur in the <code>forward</code> function of the <
 <span class="sd">            initializer: weight initialization scheme =&gt; should be a key of INITIALIZERS</span>
 <span class="sd">            regularizer: regularization method =&gt; should be a key of REGULARIZERS</span>
 <span class="sd">            dropout: probability that a hidden unit should be dropped out</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">INITIALIZERS</span><span class="p">[</span><span class="n">initializer</span><span class="p">](</span><span class="n">inputdim</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span> <span class="k">if</span> <span class="n">initializer</span> <span class="k">else</span> <span class="n">INITIALIZERS</span><span class="p">[</span><span class="s1">&#39;random&#39;</span><span class="p">](</span><span class="n">inputdim</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span> <span class="o">=</span> <span class="n">regularizer</span> <span class="k">if</span> <span class="n">regularizer</span> <span class="k">else</span> <span class="s1">&#39;l&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">INITIALIZERS</span><span class="p">[</span><span class="n">initializer</span><span class="p">](</span><span class="n">inputdim</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span> <span class="k">if</span> <span class="n">initializer</span> <span class="k">else</span> <span class="n">INITIALIZERS</span><span class="p">[</span><span class="s1">'random'</span><span class="p">](</span><span class="n">inputdim</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span> <span class="o">=</span> <span class="n">regularizer</span> <span class="k">if</span> <span class="n">regularizer</span> <span class="k">else</span> <span class="s1">'l'</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">activation</span> <span class="o">=</span> <span class="n">activation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">dropout</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dz_dw</span> <span class="o">=</span> <span class="kc">None</span>
@@ -219,16 +219,16 @@ The most significant changes occur in the <code>forward</code> function of the <
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Run forward pass through layer, saving local gradients</span>
+<span class="w">        </span><span class="sd">""" Run forward pass through layer, saving local gradients</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: input data</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            output of layer given input x</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
-        <span class="n">z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz_dw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz_dx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,jk-&gt;ik&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">),</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span>
+        <span class="n">z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz_dw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz_dx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">'ij,jk-&gt;ik'</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">),</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span>
         <span class="n">a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">da_dz</span> <span class="o">=</span> <span class="n">ACTIVATIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">](</span><span class="n">z</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">:</span>
@@ -244,7 +244,7 @@ The most significant changes occur in the <code>forward</code> function of the <
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dl</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lambdaa</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Run backward pass through layer, updating weights and returning</span>
+<span class="w">        </span><span class="sd">""" Run backward pass through layer, updating weights and returning</span>
 <span class="sd">            cumulative gradient from last connected layer (output layer)</span>
 <span class="sd">            backwards through to this layer</span>
 
@@ -255,11 +255,11 @@ The most significant changes occur in the <code>forward</code> function of the <
 
 <span class="sd">        Returns:</span>
 <span class="sd">            cumulative gradient calculated at this layer</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">dl_dz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">da_dz</span> <span class="o">*</span> <span class="n">dl</span>
-        <span class="n">dl_dw</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,ik-&gt;jk&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz_dw</span><span class="p">,</span> <span class="n">dl_dz</span><span class="p">)</span> <span class="o">/</span> <span class="n">dl</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> 
-        <span class="n">dl_dx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,kj-&gt;ki&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz_dx</span><span class="p">,</span> <span class="n">dl_dz</span><span class="p">)</span>
+        <span class="n">dl_dw</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">'ij,ik-&gt;jk'</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz_dw</span><span class="p">,</span> <span class="n">dl_dz</span><span class="p">)</span> <span class="o">/</span> <span class="n">dl</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> 
+        <span class="n">dl_dx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">'ij,kj-&gt;ki'</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz_dx</span><span class="p">,</span> <span class="n">dl_dz</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">-=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="n">dl_dw</span> <span class="o">+</span> <span class="n">lambdaa</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dr_dw</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">dl_dx</span>
 </code></pre></div>

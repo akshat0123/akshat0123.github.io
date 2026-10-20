@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">    <title>Akshat Pandey</title>
     <title>N-Gram Language Models</title>
     <link rel="stylesheet" href="../../css/blogpage.css">
     <link rel="stylesheet" href="../../css/pygments.css">
@@ -91,13 +91,13 @@ p(W) &amp;= \sqrt[N]{\prod^{N}_{i=1} \frac{1}{P(w_i|w_{i-n+1:i-1})} }\\
 <span class="k">class</span><span class="w"> </span><span class="nc">NGramLanguageModel</span><span class="p">:</span>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pad</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;&lt;PAD&gt;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate NGram language model</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pad</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">"&lt;PAD&gt;"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">""" Instantiate NGram language model</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            n: size of NGrams</span>
 <span class="sd">            pad: string to use as padding</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">totals</span> <span class="o">=</span> <span class="p">{}</span>
@@ -106,7 +106,7 @@ p(W) &amp;= \sqrt[N]{\prod^{N}_{i=1} \frac{1}{P(w_i|w_{i-n+1:i-1})} }\\
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Parse string and turn it into list of tokens, removing all</span>
+<span class="w">        </span><span class="sd">""" Parse string and turn it into list of tokens, removing all</span>
 <span class="sd">            non-alphanumeric characters and splitting by space</span>
 
 <span class="sd">        Args:</span>
@@ -114,18 +114,18 @@ p(W) &amp;= \sqrt[N]{\prod^{N}_{i=1} \frac{1}{P(w_i|w_{i-n+1:i-1})} }\\
 
 <span class="sd">        Returns:</span>
 <span class="sd">            list of parsed tokens</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">line</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;[^a-z\s]&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-        <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">t</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
+<span class="sd">        """</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">"[^a-z\s]"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">' '</span><span class="p">)</span> <span class="k">if</span> <span class="n">t</span> <span class="o">!=</span> <span class="s1">''</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">tokens</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Add line to language model</span>
+<span class="w">        </span><span class="sd">""" Add line to language model</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            line: string to be added to language model</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">seq</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pad</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)]</span>
         <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
 
@@ -149,9 +149,9 @@ p(W) &amp;= \sqrt[N]{\prod^{N}_{i=1} \frac{1}{P(w_i|w_{i-n+1:i-1})} }\\
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">calcSmoothingCounts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; After all lines are added, this method can be called to generate</span>
+<span class="w">        </span><span class="sd">""" After all lines are added, this method can be called to generate</span>
 <span class="sd">            counts required for Good-Turing smoothing</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">totalCounts</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">counts</span> <span class="o">=</span> <span class="p">{}</span> 
@@ -164,7 +164,7 @@ p(W) &amp;= \sqrt[N]{\prod^{N}_{i=1} \frac{1}{P(w_i|w_{i-n+1:i-1})} }\\
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculate probability of sequence being produced by language model,</span>
+<span class="w">        </span><span class="sd">""" Calculate probability of sequence being produced by language model,</span>
 <span class="sd">            smoothed using Good-Turing smoothing</span>
 
 <span class="sd">        Args: </span>
@@ -172,7 +172,7 @@ p(W) &amp;= \sqrt[N]{\prod^{N}_{i=1} \frac{1}{P(w_i|w_{i-n+1:i-1})} }\\
 
 <span class="sd">        Returns:</span>
 <span class="sd">            probability of language model producing sequence                </span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">tseq</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">sequence</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
@@ -190,14 +190,14 @@ p(W) &amp;= \sqrt[N]{\prod^{N}_{i=1} \frac{1}{P(w_i|w_{i-n+1:i-1})} }\\
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">perplexity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculate preplexity of dataset with regard to model</span>
+<span class="w">        </span><span class="sd">""" Calculate preplexity of dataset with regard to model</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            dataset: list of string sequences in testing dataset</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            perplexity score                </span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">perp</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">N</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">dataset</span><span class="p">:</span>

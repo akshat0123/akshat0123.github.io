@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">    <title>Akshat Pandey</title>
     <title>Transformers</title>
     <link rel="stylesheet" href="../../css/blogpage.css">
     <link rel="stylesheet" href="../../css/pygments.css">
@@ -110,7 +110,7 @@ They are added to the input embeddings and can be learned during the training of
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">window_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                  <span class="n">d_k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_v</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">hidden</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_blocks</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                  <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialized tranformer-based decoder</span>
+<span class="w">        </span><span class="sd">""" Initialized tranformer-based decoder</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            vocab_size: input vocabulary size</span>
@@ -123,7 +123,7 @@ They are added to the input embeddings and can be learned during the training of
 <span class="sd">            n_blocks: number of transformer blocks</span>
 <span class="sd">            dropout: dropout amount</span>
 <span class="sd">            device: device to put model on</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pids</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">window_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span> <span class="o">=</span> <span class="n">Embedding</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
@@ -152,7 +152,7 @@ They are added to the input embeddings and can be learned during the training of
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">,</span> <span class="n">d_k</span><span class="p">,</span> <span class="n">d_v</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">,</span> <span class="n">hidden</span><span class="p">,</span> <span class="n">dropout</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialized tranformer block</span>
+<span class="w">        </span><span class="sd">""" Initialized tranformer block</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            d_in: input size</span>
@@ -162,7 +162,7 @@ They are added to the input embeddings and can be learned during the training of
 <span class="sd">            hidden: number of hidden units in feed forward layers</span>
 <span class="sd">            dropout: dropout amount</span>
 <span class="sd">            device: device to put model on</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attention</span> <span class="o">=</span> <span class="n">MultiHeadAttentionLayer</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_k</span><span class="p">,</span> <span class="n">d_v</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layer_norm</span> <span class="o">=</span> <span class="n">LayerNorm</span><span class="p">()</span>
@@ -182,13 +182,13 @@ They are added to the input embeddings and can be learned during the training of
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialized embedding encoder </span>
+<span class="w">        </span><span class="sd">""" Initialized embedding encoder </span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            vocab_size: input vocabulary size</span>
 <span class="sd">            embedding_size: embedding size</span>
 <span class="sd">            device: device to put model on</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
@@ -201,7 +201,7 @@ They are added to the input embeddings and can be learned during the training of
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">,</span> <span class="n">d_k</span><span class="p">,</span> <span class="n">d_v</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialized multi-headed attention layer</span>
+<span class="w">        </span><span class="sd">""" Initialized multi-headed attention layer</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            d_in: input size</span>
@@ -209,7 +209,7 @@ They are added to the input embeddings and can be learned during the training of
 <span class="sd">            d_v: self-attention value size </span>
 <span class="sd">            n_heads: number of self-attention heads </span>
 <span class="sd">            device: device to put model on</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">heads</span> <span class="o">=</span> <span class="n">ModuleList</span><span class="p">([</span>
             <span class="n">SelfAttentionLayer</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_k</span><span class="p">,</span> <span class="n">d_v</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_heads</span><span class="p">)</span>
@@ -227,14 +227,14 @@ They are added to the input embeddings and can be learned during the training of
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">,</span> <span class="n">d_k</span><span class="p">,</span> <span class="n">d_v</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialized self attention layer</span>
+<span class="w">        </span><span class="sd">""" Initialized self attention layer</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            d_in: input size</span>
 <span class="sd">            d_k: self-attention query, key dimension size</span>
 <span class="sd">            d_v: self-attention value size </span>
 <span class="sd">            device: device to put model on</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">wq</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_k</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">wk</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_k</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
@@ -246,10 +246,10 @@ They are added to the input embeddings and can be learned during the training of
 
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
         <span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wq</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">wk</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">wv</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-        <span class="n">QK</span> <span class="o">=</span> <span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ijk,ilk-&gt;ijl&#39;</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrt_dk</span>
+        <span class="n">QK</span> <span class="o">=</span> <span class="n">einsum</span><span class="p">(</span><span class="s1">'ijk,ilk-&gt;ijl'</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrt_dk</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">tril</span><span class="p">(</span><span class="n">ones</span><span class="p">(</span><span class="n">QK</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-        <span class="n">sQK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">QK</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="n">mask</span><span class="o">==</span><span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;-inf&#39;</span><span class="p">)))</span>
-        <span class="n">sA</span> <span class="o">=</span> <span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ijk,ikl-&gt;ijl&#39;</span><span class="p">,</span> <span class="n">sQK</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span>
+        <span class="n">sQK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">QK</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="n">mask</span><span class="o">==</span><span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s1">'-inf'</span><span class="p">)))</span>
+        <span class="n">sA</span> <span class="o">=</span> <span class="n">einsum</span><span class="p">(</span><span class="s1">'ijk,ikl-&gt;ijl'</span><span class="p">,</span> <span class="n">sQK</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sA</span>
 
 
@@ -257,8 +257,8 @@ They are added to the input embeddings and can be learned during the training of
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Layer normalization module</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Layer normalization module</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
 
@@ -274,14 +274,14 @@ They are added to the input embeddings and can be learned during the training of
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">,</span> <span class="n">activation</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialized position-wise feed forward neural network layer </span>
+<span class="w">        </span><span class="sd">""" Initialized position-wise feed forward neural network layer </span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            d_in: input size</span>
 <span class="sd">            d_out: output size</span>
 <span class="sd">            activation: activation function</span>
 <span class="sd">            device: device to put model on</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">activation</span> <span class="o">=</span> <span class="n">activation</span>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">    <title>Akshat Pandey</title>
     <title>Optimization for Deep Learning</title>
     <link rel="stylesheet" href="../../css/blogpage.css">
     <link rel="stylesheet" href="../../css/pygments.css">
@@ -82,32 +82,32 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Optimizer</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Abstract base class for optimizers</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" Abstract base class for optimizers</span>
+<span class="sd">    """</span>
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize optimizer</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Initialize optimizer</span>
+<span class="sd">        """</span>
         <span class="k">pass</span>            
 
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Copy class instance</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Copy class instance</span>
+<span class="sd">        """</span>
         <span class="k">pass</span>
 
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update weights</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Update weights</span>
+<span class="sd">        """</span>
         <span class="k">pass</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">SGDOptimizer</span><span class="p">(</span><span class="n">momentum</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optimizer</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Return stochastic gradient descent optimizer</span>
+<span class="w">    </span><span class="sd">""" Return stochastic gradient descent optimizer</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        momentum: whether to include momentum or not</span>
@@ -115,35 +115,35 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 <span class="sd">    Returns:</span>
 <span class="sd">        stochastic gradient descent optimizer</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">optimizer</span> <span class="o">=</span> <span class="n">SGDMomentumOptimizer</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">)</span> <span class="k">if</span> <span class="n">momentum</span> <span class="k">else</span> <span class="n">DefaultSGDOptimizer</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">optimizer</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">DefaultSGDOptimizer</span><span class="p">(</span><span class="n">Optimizer</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Stochastic Gradient Descent optimizer (without momentum)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" Stochastic Gradient Descent optimizer (without momentum)</span>
+<span class="sd">    """</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize default SGD optimizer</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Initialize default SGD optimizer</span>
+<span class="sd">        """</span>
         <span class="k">pass</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return copy of default SGD optimizer</span>
+<span class="w">        </span><span class="sd">""" Return copy of default SGD optimizer</span>
 
 <span class="sd">        Returns: </span>
 <span class="sd">            copy of optimizer</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">return</span> <span class="n">DefaultSGDOptimizer</span><span class="p">()</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dw</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">lambdaa</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update weights</span>
+<span class="w">        </span><span class="sd">""" Update weights</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            w: weight tensor</span>
@@ -154,36 +154,36 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 <span class="sd">        Returns: </span>
 <span class="sd">            updated weight tensor</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">return</span> <span class="n">w</span> <span class="o">-</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="n">dw</span> <span class="o">+</span> <span class="p">(</span><span class="n">lambdaa</span> <span class="o">*</span> <span class="n">dr</span><span class="p">)))</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">SGDMomentumOptimizer</span><span class="p">(</span><span class="n">Optimizer</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Stochastic Gradient Descent optimizer (with momentum)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" Stochastic Gradient Descent optimizer (with momentum)</span>
+<span class="sd">    """</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize default SGD optimizer</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Initialize default SGD optimizer</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="kc">None</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return copy of default SGD optimizer</span>
+<span class="w">        </span><span class="sd">""" Return copy of default SGD optimizer</span>
 
 <span class="sd">        Returns: </span>
 <span class="sd">            copy of optimizer</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">return</span> <span class="n">SGDMomentumOptimizer</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>            
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dw</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">lambdaa</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update weights</span>
+<span class="w">        </span><span class="sd">""" Update weights</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            w: weight tensor</span>
@@ -194,7 +194,7 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 <span class="sd">        Returns: </span>
 <span class="sd">            updated weight tensor</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
             <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -278,30 +278,30 @@ In addition, unlike RMSProp or AdaGrad, Adam also keeps a decaying average of no
 These classes are meant to be used in conjunction with the <code>Network</code> and <code>Layer</code> classes I describe in my earlier post, titled <em>Classification and Regression with Neural Networks</em>.
 The code for <code>Network</code> and <code>Layer</code> to be used with the <code>Optimizer</code> class can be found in the following package from my github page <a href="https://github.com/akshat0123/MLReview/tree/main/Packages/mlr/NN">here</a>.</p>
 <div class="codehilite"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">AdaGradOptimizer</span><span class="p">(</span><span class="n">Optimizer</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; AdaGrad optimizer</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" AdaGrad optimizer</span>
+<span class="sd">    """</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize AdaGrad optimizer</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Initialize AdaGrad optimizer</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span> 
         <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="kc">None</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return copy of default SGD optimizer</span>
+<span class="w">        </span><span class="sd">""" Return copy of default SGD optimizer</span>
 
 <span class="sd">        Returns: </span>
 <span class="sd">            copy of optimizer</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">return</span> <span class="n">AdaGradOptimizer</span><span class="p">()</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dw</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">lambdaa</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update weights</span>
+<span class="w">        </span><span class="sd">""" Update weights</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            w: weight tensor</span>
@@ -312,7 +312,7 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 <span class="sd">        Returns: </span>
 <span class="sd">            updated weight tensor</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
             <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -322,7 +322,7 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">RMSPropOptimizer</span><span class="p">(</span><span class="n">momentum</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optimizer</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Return RMSProp optimizer</span>
+<span class="w">    </span><span class="sd">""" Return RMSProp optimizer</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        momentum: whether to include momentum or not</span>
@@ -331,20 +331,20 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 <span class="sd">    Returns:</span>
 <span class="sd">        RMSProp optimizer</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">optimizer</span> <span class="o">=</span> <span class="n">RMSPropMomentumOptimizer</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">)</span> <span class="k">if</span> <span class="n">momentum</span> <span class="k">else</span> <span class="n">DefaultRMSPropOptimizer</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">optimizer</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">DefaultRMSPropOptimizer</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; RMSProp optimizer (without momentum)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" RMSProp optimizer (without momentum)</span>
+<span class="sd">    """</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize optimizer</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Initialize optimizer</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="n">rho</span>
@@ -352,14 +352,14 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return copy of DefaultRMSPropOptimizer</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Return copy of DefaultRMSPropOptimizer</span>
+<span class="sd">        """</span>
 
         <span class="k">return</span> <span class="n">DefaultRMSPropOptimizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">)</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dw</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">lambdaa</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update weights</span>
+<span class="w">        </span><span class="sd">""" Update weights</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            w: weight tensor</span>
@@ -370,7 +370,7 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 <span class="sd">        Returns: </span>
 <span class="sd">            updated weight tensor</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -380,13 +380,13 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">RMSPropMomentumOptimizer</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; RMSProp optimizer (without momentum)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" RMSProp optimizer (without momentum)</span>
+<span class="sd">    """</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize optimizer</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Initialize optimizer</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-05</span>
@@ -396,14 +396,14 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return copy of RMSPropMomentumOptimizer</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Return copy of RMSPropMomentumOptimizer</span>
+<span class="sd">        """</span>
 
         <span class="k">return</span> <span class="n">RMSPropMomentumOptimizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dw</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">lambdaa</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update weights</span>
+<span class="w">        </span><span class="sd">""" Update weights</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            w: weight tensor</span>
@@ -414,7 +414,7 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 <span class="sd">        Returns: </span>
 <span class="sd">            updated weight tensor</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>                
@@ -427,12 +427,12 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">AdamOptimizer</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Adam optimizer</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" Adam optimizer</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rho1</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">rho2</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.999</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize optimizer</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Initialize optimizer</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rho1</span> <span class="o">=</span> <span class="n">rho1</span>
@@ -442,14 +442,14 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return copy of AdamOptimizer</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Return copy of AdamOptimizer</span>
+<span class="sd">        """</span>
 
         <span class="k">return</span> <span class="n">AdamOptimizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho2</span><span class="p">)</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dw</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">lambdaa</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update weights</span>
+<span class="w">        </span><span class="sd">""" Update weights</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            w: weight tensor</span>
@@ -460,7 +460,7 @@ The code for <code>Network</code> and <code>Layer</code> to be used with the <co
 
 <span class="sd">        Returns: </span>
 <span class="sd">            updated weight tensor</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>                
