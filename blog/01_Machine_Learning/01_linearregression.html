@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Linear Regression</title>
+    <link rel="stylesheet" href="../../css/blogpage.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    <script>
+        window.MathJax = {
+            tex: {
+              inlineMath: [['\\(', '\\)']],
+              displayMath: [['\\[', '\\]']],
+              processEscapes: true,
+              processEnvironments: true
+            },
+            options: {
+              ignoreHtmlClass: '.*',
+              processHtmlClass: 'arithmatex'
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <a href="/blog.html">Blog</a>
+    <h1>Linear Regression</h1>
+<h3>Introduction</h3>
+<p>Linear regression is a parametric regression method that is used to estimate real-valued outputs given real-valued input vectors. 
+In this post, mean squared error is used as a loss function and gradient descent (or batched gradient descent) is used to learn parameters.</p>
+<p>The computation graph below shows how linear regression works. 
+The dot product of each input, a vector <span class="arithmatex">\(\vec{x}\)</span> of size <span class="arithmatex">\(D\)</span>, and weight vector <span class="arithmatex">\(\vec{w}\)</span> transposed is taken to produce the output <span class="arithmatex">\(h(x)\)</span>. 
+The loss is then calculated by calculating the mean squared error using <span class="arithmatex">\(y\)</span> and output <span class="arithmatex">\(h(x)\)</span>.</p>
+<p>The bias term <span class="arithmatex">\(\beta\)</span> is ignored for the purposes of this post, but can easily be appended to weight vector <span class="arithmatex">\(\vec{w}\)</span> after appending a <span class="arithmatex">\(1\)</span> to an input vector <span class="arithmatex">\(\vec{x}\)</span>.</p>
+<p><img alt="png" src="../../images/blog/linearregression_3_0.png" /></p>
+<h3>Learning</h3>
+<p>Given a data set <span class="arithmatex">\(X\)</span> of size <span class="arithmatex">\(N\)</span> with <span class="arithmatex">\(D\)</span> dimensions, parameters <span class="arithmatex">\(w\)</span> must be learned that minimize our loss function <span class="arithmatex">\(L_{MSE}(y, \hat{y})\)</span>.
+The weight vector is learned using gradient descent.
+The derivation for term <span class="arithmatex">\(\frac{\partial L}{\partial w}\)</span> in the weight update is displayed in the derivations section of this post.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+        h(x) &amp;= w^T \cdot x &amp; \text{[Prediction]}\\
+        L_{\text{MSE}}(y, \hat{y}) &amp;= \frac{1}{N}\sum^N_{i=1} (y-\hat{y})^2  &amp;\text{[Mean squared error]}\\
+        w_i &amp;= w_i - \alpha \frac{\partial L}{\partial w_i} &amp; \text{[Weight update]}\\
+        &amp;= w_i - \alpha \left[x_i(y - h(x))\right] &amp;\\
+        w_i &amp;= w_i - \alpha \frac{1}{B}\sum^{B}_{j=1} x_{j,i} (y-h(x)) &amp; \text{[Batch weight update]}\\
+\end{aligned}
+\]</div>
+<h3>Code</h3>
+<p>Code for a linear regressor class is shown in the block below</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">trange</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">MeanSquaredError</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">yhat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate mean squared error rate</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y: true labels</span>
+<span class="sd">        yhat: predicted labels</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        mean squared error        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span> <span class="o">-</span> <span class="n">yhat</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LinearRegressor</span><span class="p">:</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate linear regressor </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calcError</span> <span class="o">=</span> <span class="n">MeanSquaredError</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.00001</span><span class="p">,</span> <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Fit logistic regression classifier to data set</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+<span class="sd">            y: input labels</span>
+<span class="sd">            alpha: alpha parameter for weight update</span>
+<span class="sd">            epochs: number of epochs to train</span>
+<span class="sd">            batch: size of batches for training</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="n">epochs</span> <span class="o">=</span> <span class="n">trange</span><span class="p">(</span><span class="n">epochs</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Error&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">epochs</span><span class="p">:</span>
+
+            <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">batch</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="n">batch</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span>
+                <span class="n">dw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calcGradient</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">hx</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">-</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">dw</span><span class="p">)</span>
+                <span class="n">start</span> <span class="o">+=</span> <span class="n">batch</span>
+                <span class="n">end</span> <span class="o">+=</span> <span class="n">batch</span>
+
+            <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calcError</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">hx</span><span class="p">)</span>
+            <span class="n">epochs</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s1">&#39;MSE: </span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">error</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Predict output values </span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            regression output for each member of input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,kj-&gt;i&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calcGradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">,</span> <span class="n">hx</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculate weight gradient</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+<span class="sd">            y: input labels</span>
+<span class="sd">            hx: predicted output</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tensor of gradient values the same size as weights</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,i-&gt;j&#39;</span><span class="p">,</span> <span class="o">-</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">hx</span><span class="p">))</span> <span class="o">/</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</code></pre></div>
+
+<h3>Derivations</h3>
+<p>Derivative of loss function <span class="arithmatex">\(L\)</span> with respect to the regression output <span class="arithmatex">\(h(x)\)</span>:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial L}{\partial h(x)} &amp;= \frac{\partial}{\partial h(x)} (y - h(x))^2 \\
+    &amp;= 2(y - h(x))
+\end{aligned}
+\]</div>
+<p>Derivative of regression output <span class="arithmatex">\(h(x)\)</span> with respect to weight <span class="arithmatex">\(w_i\)</span>:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial h(x)}{\partial w_i} &amp;= \frac{\partial}{\partial w_i} \sum^D_{j=1} w_j \times x_j\\
+    &amp;= x_i
+\end{aligned}
+\]</div>
+<p>Derivative of loss function <span class="arithmatex">\(L\)</span> with respect to weight <span class="arithmatex">\(w_i\)</span>:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial L}{\partial w_i} &amp;= \frac{\partial h(x)}{\partial w}\frac{\partial L}{\partial h(x)}\\
+    &amp;= 2x_i(y-h(x)) \\
+    &amp;\propto x_i(y-h(x))\\
+\end{aligned}
+\]</div>
+<h3>Resources</h3>
+<ul>
+<li>Russell, Stuart J., et al. Artificial Intelligence: A Modern Approach. 3rd ed, Prentice Hall, 2010.</li>
+<li>Burkov, Andriy. The Hundred Page Machine Learning Book. 2019.</li>
+</ul>
+    <script>
+      window.addEventListener('load', () => {
+        document.querySelectorAll('.arithmatex').forEach(el => {
+          const parentWidth = el.parentElement.clientWidth;
+          if (el.scrollWidth > parentWidth) {
+            const scale = parentWidth / (el.scrollWidth * 1.05);
+            el.style.transform = `scale(${scale})`;
+            el.style.transformOrigin = 'left center';
+            el.style.display = 'inline-block';
+            el.style.width = `${parentWidth}px`;
+          }
+        });
+      });
+    </script>
+</body>
+</html>

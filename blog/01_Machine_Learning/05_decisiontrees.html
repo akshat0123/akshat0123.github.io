@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Decision Trees</title>
+    <link rel="stylesheet" href="../../css/blogpage.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    <script>
+        window.MathJax = {
+            tex: {
+              inlineMath: [['\\(', '\\)']],
+              displayMath: [['\\[', '\\]']],
+              processEscapes: true,
+              processEnvironments: true
+            },
+            options: {
+              ignoreHtmlClass: '.*',
+              processHtmlClass: 'arithmatex'
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <a href="/blog.html">Blog</a>
+    <h1>Decision Trees</h1>
+<h3>Introduction</h3>
+<p>Decision trees are a non-parametric regression and classification method that can be used to estimate categorical and real-valued output given real-valued input vectors. 
+In this post, the "Classification and Regression Trees" (CART) approach will be used to build trees.
+The maximum depth as well as minimum leaf size will be considered parameters of the tree.
+Cost-complexity pruning will not be examined for the purposes of this post.</p>
+<p>The input table and decision tree below show how a learned decision tree works.
+In this classification example, the input is classified as "Iris Versicolor" due to the "Sepal Length" feature being less than <span class="arithmatex">\(6.0\)</span> and the "Sepal Width" feature being <span class="arithmatex">\(\geq 3.0\)</span>.
+Classification and regression using decision trees is calculated by taking and input and traversing the tree until a leaf node is reached.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Sepal Length</th>
+<th style="text-align: center;">Sepal Width</th>
+<th style="text-align: center;">Petal Length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">5.84</td>
+<td style="text-align: center;">3.05</td>
+<td style="text-align: center;">3.76</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="png" src="../../images/blog/decisiontrees_5_0.png" /></p>
+<p>Decision trees are learned by recursively splitting the data set until a parameter setting is met (the maximum depth has been reached, or the data set contains fewer elements than the required minimum leaf size), or if features are examined without replacement, until there are no more features left to be split on.
+At each split, a feature and value pair is chosen that separates the data most effectively.
+Determining the effectiveness of a split can be done in multiple ways.
+For the purposes of this post, for a decision tree regressor, splitting is performed using mean squared error, and for a decision tree classifier, splitting is performed using the gini index.</p>
+<h3>Learning: Regression</h3>
+<p>Given data set <span class="arithmatex">\(X\)</span>, a split is chosen resulting in 2 subsets of <span class="arithmatex">\(X\)</span>, <span class="arithmatex">\(R_1\)</span> and <span class="arithmatex">\(R_2\)</span> such that the sum of mean squared errors of <span class="arithmatex">\(R_1\)</span> and <span class="arithmatex">\(R_2\)</span> are minimized</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    R_m &amp;= \text{Node } m &amp; \\
+    N_m &amp;= \#\{x_i \in R_m\} &amp; \text{[Size of data in $R_m$]}\\
+    j &amp;= \text{attribute} &amp;\\
+    a &amp;= \text{value} &amp;\\
+    c_m &amp;= \frac{1}{N_m}\sum^{N_m}_{i=1}y_{m, i} &amp; \text{[Output for $R_m$]}\\
+    j, s &amp;= \min_{j, s} \left[
+       \min_{c_1} \frac{1}{N_1}\sum^{N_1}_{i=1} (y_{1, i} - c_1)^2 +
+       \min_{c_2} \frac{1}{N_2}\sum^{N_2}_{i=1} (y_{2, i} - c_1)^2
+    \right]&amp;\text{[Mean squared error splitting condition]}
+\end{aligned}
+\]</div>
+<h3>Code</h3>
+<p>Code for a decision tree regressor is shown in the block below</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Node</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate member of Node class</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            left: left child</span>
+<span class="sd">            right: right child</span>
+<span class="sd">            attribute: column of dataset to split on</span>
+<span class="sd">            value: value of attribute to split on</span>
+<span class="sd">            label: majority class label at this node</span>
+<span class="sd">            counts: frequency of each class at this node</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="n">right</span><span class="p">,</span> <span class="n">left</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attribute</span> <span class="o">=</span> <span class="n">attribute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">MeanSquaredError</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">yhat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate mean squared error rate</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y: true labels</span>
+<span class="sd">        yhat: predicted labels</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        mean squared error        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span> <span class="o">-</span> <span class="n">yhat</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DecisionTreeRegressor</span><span class="p">:</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxDepth</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">leafSize</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate member of DecisionTreeClassifier class</span>
+
+
+<span class="sd">        Args:</span>
+<span class="sd">            maxDepth: maximum depth to allow when building tree</span>
+<span class="sd">            leafSize: minimum number of members required to split a node </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxDepth</span> <span class="o">=</span> <span class="n">maxDepth</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">leafSize</span> <span class="o">=</span> <span class="n">leafSize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Fit decision tree to dataset</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: training data</span>
+<span class="sd">            y: labels corresponding to x</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buildTree</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">leafSize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">leafSize</span><span class="p">,</span> <span class="n">maxDepth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maxDepth</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Predict label given input</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tensor of predicted labels</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">y</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ridx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+
+            <span class="n">curnode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span> 
+            <span class="k">while</span> <span class="ow">not</span> <span class="p">(</span><span class="n">curnode</span><span class="o">.</span><span class="n">left</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">curnode</span><span class="o">.</span><span class="n">right</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">ridx</span><span class="p">,</span> <span class="n">curnode</span><span class="o">.</span><span class="n">attribute</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">curnode</span><span class="o">.</span><span class="n">value</span><span class="p">:</span> <span class="n">curnode</span> <span class="o">=</span> <span class="n">curnode</span><span class="o">.</span><span class="n">left</span>
+                <span class="k">else</span><span class="p">:</span> <span class="n">curnode</span> <span class="o">=</span> <span class="n">curnode</span><span class="o">.</span><span class="n">right</span>
+
+            <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curnode</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>            
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">splitValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Determine best split value given an attribute</span>
+
+<span class="sd">        Args</span>
+<span class="sd">            x: input dataset</span>
+<span class="sd">            y: input dataset labels</span>
+<span class="sd">            attribute: column to find best split value on</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            the best split value and the mean squared error of the split at that</span>
+<span class="sd">            value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">mins</span><span class="p">,</span> <span class="n">minval</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">sidx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leafSize</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+
+            <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">sidx</span><span class="p">,</span> <span class="n">attribute</span><span class="p">]</span> <span class="o">!=</span> <span class="n">x</span><span class="p">[</span><span class="n">sidx</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">attribute</span><span class="p">]:</span>
+                <span class="n">c1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="p">[:</span><span class="n">sidx</span><span class="p">])</span>
+                <span class="n">c2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">sidx</span><span class="p">:])</span>
+                <span class="n">mse</span> <span class="o">=</span> <span class="p">(</span><span class="n">MeanSquaredError</span><span class="p">(</span><span class="n">y</span><span class="p">[:</span><span class="n">sidx</span><span class="p">],</span> <span class="n">c1</span><span class="p">)</span> <span class="o">+</span> <span class="n">MeanSquaredError</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">sidx</span><span class="p">:],</span> <span class="n">c2</span><span class="p">))</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">mse</span> <span class="o">&lt;</span> <span class="n">minval</span><span class="p">:</span>
+                    <span class="n">mins</span> <span class="o">=</span> <span class="p">((</span><span class="n">x</span><span class="p">[</span><span class="n">sidx</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">attribute</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="n">sidx</span><span class="p">,</span> <span class="n">attribute</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                    <span class="n">minval</span> <span class="o">=</span> <span class="n">mse</span>
+
+        <span class="k">return</span> <span class="n">mins</span><span class="p">,</span> <span class="n">minval</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">splitAttributeValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Given a dataset, return best (attribute, value) pair to split on</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input dataset</span>
+<span class="sd">            y: input dataset labels</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            attribute to split on, attribute value to split on, and mean squared</span>
+<span class="sd">            error at that split</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Find best split attribute, value</span>
+        <span class="n">minj</span><span class="p">,</span> <span class="n">mins</span><span class="p">,</span> <span class="n">minval</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+
+            <span class="n">xargs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="n">j</span><span class="p">])</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">xargs</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">xargs</span><span class="p">]</span>
+            <span class="n">s</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitValue</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;</span> <span class="n">minval</span><span class="p">:</span>
+                <span class="n">minj</span> <span class="o">=</span> <span class="n">j</span>
+                <span class="n">mins</span> <span class="o">=</span> <span class="n">s</span>
+                <span class="n">minval</span> <span class="o">=</span> <span class="n">val</span>
+
+        <span class="k">return</span> <span class="n">minj</span><span class="p">,</span> <span class="n">mins</span><span class="p">,</span> <span class="n">minval</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">buildTree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxDepth</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">leafSize</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Build decision tree given a dataset</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input dataset</span>
+<span class="sd">            y: input dataset labels</span>
+<span class="sd">            depth: depth of current node</span>
+<span class="sd">            maxDepth: maximum allowed depth of tree</span>
+<span class="sd">            leafSize: minimum required members of node for split</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            root node of tree</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">leafSize</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">maxDepth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">depth</span><span class="o">==</span><span class="n">maxDepth</span><span class="p">):</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Node</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">attribute</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">mse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitAttributeValue</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">Node</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">largs</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="n">attribute</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">value</span><span class="p">)</span>
+                <span class="n">rargs</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="n">attribute</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">value</span><span class="p">)</span>
+                <span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buildTree</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">largs</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">largs</span><span class="p">],</span> <span class="n">depth</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">maxDepth</span><span class="p">,</span> <span class="n">leafSize</span><span class="p">)</span>
+                <span class="n">right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buildTree</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">rargs</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">rargs</span><span class="p">],</span> <span class="n">depth</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">maxDepth</span><span class="p">,</span> <span class="n">leafSize</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">Node</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+</code></pre></div>
+
+<h3>Learning: Classification</h3>
+<p>Given data set <span class="arithmatex">\(X\)</span>, a split is chosen resulting in 2 subsets of <span class="arithmatex">\(X\)</span>, <span class="arithmatex">\(R_1\)</span> and <span class="arithmatex">\(R_2\)</span> such that the sum of gini index values of <span class="arithmatex">\(R_1\)</span> and <span class="arithmatex">\(R_2\)</span> are minimized</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    R_m &amp;= \text{Node } m &amp; \\
+    N_m &amp;= \#\{x_i \in R_m\} &amp; \text{[Size of data in $R_m$]}\\
+    j &amp;= \text{attribute} &amp;\\
+    a &amp;= \text{value} &amp;\\
+    p_{m, k} &amp;= \frac{1}{N_m}\sum^{N_m}_{i=1} I(y_{m, i} = k) &amp;\text{[Probability of class $k$ in $R_m$]}\\
+    c_m &amp;= \max_k p_{m, k} &amp; \text{[Output for $R_m$]}\\
+    j, s &amp;= \min_{j, s} \left[
+        N_1 \sum^{K}_{k=1} p_{1, k} \log (1 - p_{1, k}) +
+        N_2 \sum^{K}_{k=1} p_{2, k} \log (1 - p_{2, k})
+    \right]&amp;\text{[Gini index splitting condition]}
+\end{aligned}
+\]</div>
+<h3>Code</h3>
+<p>Code for a decision tree classifier is shown in the block below</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Node</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate member of Node class</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            left: left child</span>
+<span class="sd">            right: right child</span>
+<span class="sd">            attribute: column of dataset to split on</span>
+<span class="sd">            value: value of attribute to split on</span>
+<span class="sd">            label: majority class label at this node</span>
+<span class="sd">            counts: frequency of each class at this node</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="n">right</span><span class="p">,</span> <span class="n">left</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attribute</span> <span class="o">=</span> <span class="n">attribute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DecisionTreeClassifier</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxDepth</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">leafSize</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate member of DecisionTreeClassifier class</span>
+
+
+<span class="sd">        Args:</span>
+<span class="sd">            maxDepth: maximum depth to allow when building tree</span>
+<span class="sd">            leafSize: minimum number of members required to split a node </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxDepth</span> <span class="o">=</span> <span class="n">maxDepth</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">leafSize</span> <span class="o">=</span> <span class="n">leafSize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">classes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Fit decision tree to dataset</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: training data</span>
+<span class="sd">            y: labels corresponding to x</span>
+<span class="sd">            classes: list of unique possible labels</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buildTree</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">leafSize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">leafSize</span><span class="p">,</span> <span class="n">maxDepth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maxDepth</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Predict label given input</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tensor of predicted labels</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">y</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ridx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+
+            <span class="n">curnode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span> 
+            <span class="k">while</span> <span class="ow">not</span> <span class="p">(</span><span class="n">curnode</span><span class="o">.</span><span class="n">left</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">curnode</span><span class="o">.</span><span class="n">right</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">ridx</span><span class="p">,</span> <span class="n">curnode</span><span class="o">.</span><span class="n">attribute</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">curnode</span><span class="o">.</span><span class="n">value</span><span class="p">:</span> <span class="n">curnode</span> <span class="o">=</span> <span class="n">curnode</span><span class="o">.</span><span class="n">left</span>
+                <span class="k">else</span><span class="p">:</span> <span class="n">curnode</span> <span class="o">=</span> <span class="n">curnode</span><span class="o">.</span><span class="n">right</span>
+
+            <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curnode</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>            
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">y</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calcGiniIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">classes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculate gini index value given </span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            counts: dictionary of counts for each class</span>
+<span class="sd">            size: total size of dataset being examined</span>
+<span class="sd">            classes: list of unique classes</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            gini index value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">probs</span> <span class="o">=</span> <span class="p">{</span> <span class="n">c</span><span class="p">:</span> <span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">/</span> <span class="n">size</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span> <span class="p">}</span>
+        <span class="n">gini</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([(</span><span class="n">counts</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">/</span><span class="n">size</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">/</span><span class="n">size</span><span class="p">))</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">gini</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">splitValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">classes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Determine best split value given an attribute</span>
+
+<span class="sd">        Args</span>
+<span class="sd">            x: input dataset</span>
+<span class="sd">            y: input dataset labels</span>
+<span class="sd">            attribute: column to find best split value on</span>
+<span class="sd">            classes: list of possible unique labels</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            the best split value and the gini index of the split at that value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">value</span><span class="p">,</span> <span class="n">purity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Initialize counts for splits c1 and c2 to calculate rolling gini index</span>
+        <span class="n">c1</span> <span class="o">=</span> <span class="p">{</span> <span class="n">c</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span> <span class="p">}</span>
+        <span class="n">c2</span> <span class="o">=</span> <span class="p">{</span> <span class="n">c</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span><span class="o">==</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">())</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span> <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">vidx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">c1</span><span class="p">[</span><span class="n">y</span><span class="p">[</span><span class="n">vidx</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">c2</span><span class="p">[</span><span class="n">y</span><span class="p">[</span><span class="n">vidx</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()]</span> <span class="o">-=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">vidx</span><span class="p">,</span> <span class="n">attribute</span><span class="p">]</span> <span class="o">!=</span> <span class="n">x</span><span class="p">[</span><span class="n">vidx</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">attribute</span><span class="p">]:</span>
+                <span class="n">g1</span> <span class="o">=</span> <span class="p">(</span><span class="n">vidx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">calcGiniIndex</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">vidx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span>
+                <span class="n">g2</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">vidx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">calcGiniIndex</span><span class="p">(</span><span class="n">c2</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">vidx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">classes</span><span class="p">)</span>
+                <span class="n">gini</span> <span class="o">=</span> <span class="n">g1</span> <span class="o">+</span> <span class="n">g2</span>
+
+                <span class="k">if</span> <span class="n">gini</span> <span class="o">&lt;</span> <span class="n">purity</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="p">((</span><span class="n">x</span><span class="p">[</span><span class="n">vidx</span><span class="p">,</span> <span class="n">attribute</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="n">vidx</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">attribute</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                    <span class="n">purity</span> <span class="o">=</span> <span class="n">gini</span>
+
+        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">purity</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">splitAttributeValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">classes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Given a dataset, return best (attribute, value) pair to split on</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input dataset</span>
+<span class="sd">            y: input dataset labels</span>
+<span class="sd">            classes: list of unique possible labels</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            attribute to split on, attribute value to split on, and gini index at</span>
+<span class="sd">            that split</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">attribute</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">purity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">aidx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+
+            <span class="n">xargs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="n">aidx</span><span class="p">])</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">xargs</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">xargs</span><span class="p">]</span>
+            <span class="n">val</span><span class="p">,</span> <span class="n">gini</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitValue</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">aidx</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">gini</span> <span class="o">&lt;</span> <span class="n">purity</span><span class="p">:</span>
+                <span class="n">attribute</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">purity</span> <span class="o">=</span> <span class="n">aidx</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">gini</span>
+
+        <span class="k">return</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">purity</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">buildTree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">classes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxDepth</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">leafSize</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Build decision tree given a dataset</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input dataset</span>
+<span class="sd">            y: input dataset labels</span>
+<span class="sd">            classes: list of possible unique labels</span>
+<span class="sd">            depth: depth of current node</span>
+<span class="sd">            maxDepth: maximum allowed depth of tree</span>
+<span class="sd">            leafSize: minimum required members of node for split</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            root node of tree</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">leafSize</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">maxDepth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">depth</span><span class="o">==</span><span class="n">maxDepth</span><span class="p">):</span>
+            <span class="n">counts</span> <span class="o">=</span> <span class="p">[(</span><span class="n">c</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span><span class="o">==</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">())</span><span class="o">.</span><span class="n">item</span><span class="p">())</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">]</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">Node</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">attribute</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">purity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitAttributeValue</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">counts</span> <span class="o">=</span> <span class="p">[(</span><span class="n">c</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span><span class="o">==</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">())</span><span class="o">.</span><span class="n">item</span><span class="p">())</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">]</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">Node</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">largs</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="n">attribute</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">value</span><span class="p">)</span>
+                <span class="n">rargs</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="n">attribute</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">value</span><span class="p">)</span>
+                <span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buildTree</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">largs</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">largs</span><span class="p">],</span> <span class="n">classes</span><span class="p">,</span> <span class="n">depth</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">maxDepth</span><span class="p">,</span> <span class="n">leafSize</span><span class="p">)</span>
+                <span class="n">right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buildTree</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">rargs</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">rargs</span><span class="p">],</span> <span class="n">classes</span><span class="p">,</span> <span class="n">depth</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">maxDepth</span><span class="p">,</span> <span class="n">leafSize</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">Node</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+</code></pre></div>
+
+<h3>Resources</h3>
+<ul>
+<li>Russell, Stuart J., et al. Artificial Intelligence: A Modern Approach. 3rd ed, Prentice Hall, 2010.</li>
+<li>Hastie, Trevor, et al. The Elements of Statistical Learning: Data Mining, Inference, and Prediction. Springer, 2009.</li>
+</ul>
+    <script>
+      window.addEventListener('load', () => {
+        document.querySelectorAll('.arithmatex').forEach(el => {
+          const parentWidth = el.parentElement.clientWidth;
+          if (el.scrollWidth > parentWidth) {
+            const scale = parentWidth / (el.scrollWidth * 1.05);
+            el.style.transform = `scale(${scale})`;
+            el.style.transformOrigin = 'left center';
+            el.style.display = 'inline-block';
+            el.style.width = `${parentWidth}px`;
+          }
+        });
+      });
+    </script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Common Activation and Loss Functions</title>
+    <link rel="stylesheet" href="../../css/blogpage.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    <script>
+        window.MathJax = {
+            tex: {
+              inlineMath: [['\\(', '\\)']],
+              displayMath: [['\\[', '\\]']],
+              processEscapes: true,
+              processEnvironments: true
+            },
+            options: {
+              ignoreHtmlClass: '.*',
+              processHtmlClass: 'arithmatex'
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <a href="/blog.html">Blog</a>
+    <h1>Common Activation and Loss Functions</h1>
+<h3>Introduction</h3>
+<p>In my previous post on deep learning, I discussed how to create feed-forward neural network layers, and how create models of arbitrary size with those layers.
+I also mention that a variety of activation functions can be used in the hidden layers of a neural network, and various loss functions can be used depending on the desired goals for a model.
+In this post, I will go over some common activation and loss functions and derive their local gradients.</p>
+<h3>Common Activation Functions</h3>
+<h4>Sigmoid Function</h4>
+<p>The sigmoid function takes in real-valued input <span class="arithmatex">\(x\)</span> and returns a real-valued output in the range <span class="arithmatex">\([0, 1]\)</span>.
+This activation function is most often used in output layers for binary classification models, although it could technically be used in hidden layers as well.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \sigma(x) &amp;= \frac{1}{1 + e^{-x}} \\
+    \frac{\partial \sigma(x)}{\partial x} &amp;= \frac{\partial}{\partial x} (1+e^{-x})^{-1}\\
+    &amp;= -(1+e^{-x})^{-2} \frac{\partial}{\partial x} (1 + e^{-x})\\
+    &amp;= -(1+e^{-x})^{-2} \frac{\partial}{\partial x} e^{-x}\\
+    &amp;= -(1+e^{-x})^{-2} e^{-x} \frac{\partial}{\partial x} -x\\
+    &amp;= (1+e^{-x})^{-2} e^{-x}\\
+    &amp;= \frac{e^{-x}}{(1+e^{-x})^{2}}\\
+    &amp;= \frac{1}{1+e^{-x}} \frac{e^{-x}}{1+e^{-x}}\\
+    &amp;= \frac{1}{1+e^{-x}} \frac{1 + e^{-x} - 1}{1+e^{-x}}\\
+    &amp;= \frac{1}{1+e^{-x}} \left[\frac{1 + e^{-x}}{1+e^{-x}} - \frac{1}{1+e^{-x}}\right]\\
+    &amp;= \frac{1}{1+e^{-x}} \left[1 - \frac{1}{1+e^{-x}}\right]\\
+    &amp;= \sigma(x) [1 - \sigma(x)]\\
+\end{aligned}
+\]</div>
+<h4>Tanh Function</h4>
+<p>The tanh function takes in real-valued input <span class="arithmatex">\(x\)</span> and returns a real-valued output in the range <span class="arithmatex">\([-1, 1]\)</span>.
+This activation function is most often seen as an activation function for hidden layers.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \tanh(x) &amp;= \frac{\sinh(x)}{\cosh(x)}\\
+    &amp;= \frac{e^x - e^{-x}}{e^x + e^{-x}} \\
+    \frac{\partial \tanh(x)}{\partial x} &amp;= 
+    \frac{
+        \left[\frac{\partial}{\partial x} (e^x - e^{-x})\right]
+        (e^x + e^{-x})
+        - 
+        (e^x - e^{-x})
+        \left[\frac{\partial}{\partial x} (e^x + e^{-x})\right]
+    }{
+        (e^x + e^{-x})^2
+    }\\
+    &amp;= 
+    \frac{
+        (e^x + e^{-x})^2 - (e^x - e^{-x})^2
+    }{
+        (e^x + e^{-x})^2
+    }\\
+    &amp;= 1 - 
+    \frac{
+        (e^x - e^{-x})^2
+    }{
+        (e^x + e^{-x})^2
+    }\\
+    &amp;= 1 - \tanh^2(x)\\
+\end{aligned}
+\]</div>
+<h4>Rectified Linear Activation Function (ReLU)</h4>
+<p>The ReLU function takes in real-valued input <span class="arithmatex">\(x\)</span> and returns real-valued output in the range <span class="arithmatex">\([0, \infty)\)</span>. 
+The ReLU function is most often seen as an activation function for hidden layers.
+It should be noted that formally, the derivative for the ReLU function at 0 is undefined. 
+However, in practice, it is often set to 0 when <span class="arithmatex">\(x\)</span> is 0.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    r(x) &amp;= 
+    \begin{cases}
+        x &amp; x &gt; 0\\
+        0 &amp; x &lt; 0
+    \end{cases}\\
+    \frac{\partial r(x)}{\partial x} &amp;= 
+    \begin{cases}
+        1 &amp; x &gt; 0\\
+        0 &amp; x &lt; 0\\
+    \end{cases}\\
+\end{aligned}
+\]</div>
+<h4>Softmax Function</h4>
+<p>The softmax function takes in a vector of real-values and returns a vector of real values, each in the range <span class="arithmatex">\([0, 1]\)</span>.
+The vector <span class="arithmatex">\(\vec{s(x)}\)</span> obtained from running vector <span class="arithmatex">\(x\)</span> through the softmax function always sums to 1.
+Due to this, the softmax function is most often used as the activation function for output layers in multinomial classification problems.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    s(x_i) &amp;= \frac{e^{x_i}}{\sum^K_{k=1} e^{x_k}} \\
+    \frac{\partial s(x_j)}{\partial x_i} &amp;= \frac{\partial}{\partial x_i} \frac{e^{x_j}}{\sum^K_{k=1} e^{x_k}}\\
+    &amp;= \frac{
+        \left(\frac{\partial}{\partial x_i} e^{x_j}\right)\sum^K_{k=1}e^{x_k} - 
+        e^{x_j}\left(\frac{\partial}{\partial x_i}\sum^K_{k=1}e^{x_k}\right) 
+    }{
+        (\sum^K_{k=1}e^{x_k})^2
+    }\\
+    &amp;= 
+    \begin{cases}
+        \frac{
+            \left(\frac{\partial}{\partial x_i} e^{x_j}\right)\sum^K_{k=1}e^{x_k} - 
+            e^{x_j}\left(\frac{\partial}{\partial x_i}\sum^K_{k=1}e^{x_k}\right) 
+        }{
+            (\sum^K_{k=1}e^{x_k})^2
+        } &amp; i=j\\
+        \frac{
+            \left(\frac{\partial}{\partial x_i} e^{x_j}\right)\sum^K_{k=1}e^{x_k} - 
+            e^{x_j}\left(\frac{\partial}{\partial x_i}\sum^K_{k=1}e^{x_k}\right) 
+        }{
+            (\sum^K_{k=1}e^{x_k})^2
+        } &amp; i\neq j\\
+    \end{cases}\\
+    &amp;= 
+    \begin{cases}
+        \frac{
+            e^{x_i}\sum^K_{k=1}e^{x_k} - 
+            e^{x_i}e^{x_i} 
+        }{
+            (\sum^K_{k=1}e^{x_k})^2
+        } &amp; i=j\\
+        \frac{
+            0\sum^K_{k=1}e^{x_k} - 
+            e^{x_j}e^{x_i}
+        }{
+            (\sum^K_{k=1}e^{x_k})^2
+        } &amp; i\neq j\\
+    \end{cases}\\
+    &amp;= 
+    \begin{cases}
+        \frac{
+            e^{x_i}(\sum^K_{k=1}e^{x_k} -  e^{x_i}) 
+        }{
+            (\sum^K_{k=1}e^{x_k})^2
+        } &amp; i=j\\
+        \frac{
+            e^{x_i}(-e^{x_j})
+        }{
+            (\sum^K_{k=1}e^{x_k})^2
+        } &amp; i\neq j\\
+    \end{cases}\\
+    &amp;= 
+    \begin{cases}
+        s(x_i)(1 - s(x_j))
+        &amp; i=j\\
+        s(x_i)(0 - s(x_j))
+        &amp; i\neq j\\
+    \end{cases}\\
+    &amp;= s(x_i)(\delta_{i=j} - s(x_j))\\
+\end{aligned}
+\]</div>
+<h3>Common Loss Functions</h3>
+<h4>Binary Cross-Entropy</h4>
+<p>The binary cross-entropy loss function is used for models where the desired output is a binary probability.
+This is necessary in binary classification models.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    L_{\text{BCE}}(y, \hat{y}) &amp;= -\left[y\log \hat{y} + (1-y)\log(1-\hat{y})\right]\\
+    \frac{\partial L}{\partial \hat{y}} &amp;= 
+    \frac{\partial}{\partial \hat{y}} -\left[y\log \hat{y} + (1-y)\log(1-\hat{y})\right]\\
+    &amp;= -\left[
+        \frac{\partial}{\partial \hat{y}} y\log \hat{y} + 
+        \frac{\partial}{\partial \hat{y}}(1-y)\log(1-\hat{y}) 
+    \right]\\
+    &amp;= -\left[  \frac{y}{\hat{y}} - \frac{1-y}{1-\hat{y}}  \right]\\
+    &amp;= \frac{1-y}{1-\hat{y}} - \frac{y}{\hat{y}}\\
+\end{aligned}
+\]</div>
+<h4>Cross-Entropy</h4>
+<p>The cross-entropy function is used for models where the desired output is a probability distribution over <span class="arithmatex">\(K\)</span> possible classes.
+This is necessary in multinomial classification models.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    L_{CE}(y, \hat{y}) &amp;= - \left[ \sum^{K}_{k=1} y_k \log(\hat{y}_k) \right] \\
+    \frac{\partial L}{\partial \hat{y}_i} &amp;= 
+    \frac{\partial}{\partial \hat{y}_i} - \left[ \sum^{K}_{k=1} y_k \log(\hat{y}_k) \right]\\
+    &amp;= -\left[ \frac{\partial}{\partial \hat{y_i}} y_i \log(\hat{y}_i)  \right]\\
+    &amp;= -\frac{y_i}{\hat{y}_i}\\
+\end{aligned}
+\]</div>
+<h4>Mean Squared Error</h4>
+<p>The mean squared error loss function is used for models where the desired output is a real number.
+This is necessary for regression models.</p>
+<div class="arithmatex">\[
+\begin{aligned} 
+    L_{\text{MSE}}(y,\hat{y}) &amp;= (y - \hat{y})^2\\
+    \frac{\partial L}{\partial \hat{y}} &amp;= \frac{\partial}{\partial \hat{y}} (y - \hat{y})^2\\
+    &amp;= 2(y-\hat{y})\frac{\partial}{\partial \hat{y}} (y - \hat{y})\\
+    &amp;= 2(\hat{y}-y)\\
+    &amp;\propto \hat{y}-y\\
+\end{aligned}
+\]</div>
+    <script>
+      window.addEventListener('load', () => {
+        document.querySelectorAll('.arithmatex').forEach(el => {
+          const parentWidth = el.parentElement.clientWidth;
+          if (el.scrollWidth > parentWidth) {
+            const scale = parentWidth / (el.scrollWidth * 1.05);
+            el.style.transform = `scale(${scale})`;
+            el.style.transformOrigin = 'left center';
+            el.style.display = 'inline-block';
+            el.style.width = `${parentWidth}px`;
+          }
+        });
+      });
+    </script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Multinomial Logistic Regression (Softmax Regression)</title>
+    <link rel="stylesheet" href="../../css/blogpage.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    <script>
+        window.MathJax = {
+            tex: {
+              inlineMath: [['\\(', '\\)']],
+              displayMath: [['\\[', '\\]']],
+              processEscapes: true,
+              processEnvironments: true
+            },
+            options: {
+              ignoreHtmlClass: '.*',
+              processHtmlClass: 'arithmatex'
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <a href="/blog.html">Blog</a>
+    <h1>Multinomial Logistic Regression (Softmax Regression)</h1>
+<h3>Introduction</h3>
+<p>Softmax regression is a parametric classification method that is used to estimate multiclass output given real-valued input vectors.
+In this post, cross entropy loss is used as the loss function and gradient descent (or batched gradient descent) is used to learn parameters.</p>
+<p>The computation graph below shows how softmax regression works. The dot product of each input <span class="arithmatex">\(\vec{x}\)</span>, and each vector <span class="arithmatex">\(\vec{w}\)</span> for each of <span class="arithmatex">\(K\)</span> classes is taken, resulting in values <span class="arithmatex">\(z_1\)</span> to <span class="arithmatex">\(z_k\)</span>.
+The softmax function is applied to then new vector <span class="arithmatex">\(\vec{z}\)</span>, composed of <span class="arithmatex">\([z_1, z_2, ..., z_K]\)</span>.
+The loss is then calculated using the cross entropy loss on label vector <span class="arithmatex">\(\vec{y}\)</span> and <span class="arithmatex">\(\vec{z}\)</span>.</p>
+<p><img alt="png" src="../../images/blog/multinomiallogisticregression_4_0.png" /></p>
+<h3>Learning</h3>
+<p>Given a data set X of size <span class="arithmatex">\(N\)</span> with <span class="arithmatex">\(D\)</span> dimensions, parameters <span class="arithmatex">\(w\)</span> must be learned for each of <span class="arithmatex">\(K\)</span> classes that minimize our loss function <span class="arithmatex">\(L_{\text{CE}}(y, \hat{y})\)</span>.
+The weight vectors are learned using gradient descent.
+The derivation for term <span class="arithmatex">\(\frac{\partial L}{\partial w_i}\)</span> in the weight update is displayed in the derivations section of this post.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    s(z_i) &amp;= \frac{e^{z_i}}{\sum^{K}_{i=1}e^{z_i}} &amp; \text{[Softmax function]}\\
+    L_{\text{CE}}(y, \hat{y}) &amp;= -\left[y\log\hat{y}\right]&amp; \text{[Cross entropy loss]}\\
+    w_i &amp;= w_i - \alpha \frac{\partial L}{\partial w} &amp; \text{[Weight update]}\\
+    &amp;= w_i - \alpha \left[x_i (s(z_i) - y_i) \right] &amp;\\
+    w_i &amp;= w_i - \alpha \frac{1}{B}\sum^B_{j=1} \left[x_{j,i} (s(z_{j,i}) - y_{j,i}) \right] &amp; \text{[Batch weight update]}\\
+\end{aligned}
+\]</div>
+<h3>Code</h3>
+<p>Code for a softmax regression classifier is shown in the block below</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">trange</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">Softmax</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Apply softmax function to tensor</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x: input tensor</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tensor with softmax function applied to all members</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">OneHotErrorRate</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">yhat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate error rate for one-hot encoded multiclass problem</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y: true labels</span>
+<span class="sd">        yhat: predicted labels</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        error rate</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">ErrorRate</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">yhat</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SoftmaxRegressionClassifier</span><span class="p">:</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate softmax regression classifier</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calcError</span> <span class="o">=</span> <span class="n">OneHotErrorRate</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">batch</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Fit logistic regression classifier to dataset</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+<span class="sd">            y: input labels</span>
+<span class="sd">            alpha: alpha parameter for weight update</span>
+<span class="sd">            epochs: number of epochs to train</span>
+<span class="sd">            batch: size of batches for training</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">createOneHotColumn</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">numpy</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="n">epochs</span> <span class="o">=</span> <span class="n">trange</span><span class="p">(</span><span class="n">epochs</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Accuracy&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">epochs</span><span class="p">:</span>
+
+            <span class="n">rargs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randperm</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">rargs</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">rargs</span><span class="p">]</span>
+
+            <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">batch</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="n">batch</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">sz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">probs</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span> 
+                    <span class="n">dw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calcGradient</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">sz</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">-</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">dw</span>
+
+                <span class="n">start</span> <span class="o">+=</span> <span class="n">batch</span>
+                <span class="n">end</span> <span class="o">+=</span> <span class="n">batch</span>
+
+            <span class="n">sz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">probs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">accuracy</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">calcError</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">sz</span><span class="p">)</span>
+            <span class="n">epochs</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s1">&#39;Accuracy: </span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">accuracy</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">probs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Predict probabilities of belonging to each class</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            probabilities for each member of input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">Softmax</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,kj-&gt;ik&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">))</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Predict labels</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            labels for each member of input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">probs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">hx</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calcGradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">probs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculate weight gradient</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+<span class="sd">            y: input labels</span>
+<span class="sd">            probs: predicted probabilities</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tensor of gradient values the same size as weights</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,ik-&gt;jk&#39;</span><span class="p">,</span> <span class="n">probs</span> <span class="o">-</span> <span class="n">y</span> <span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</code></pre></div>
+
+<h3>Derivations</h3>
+<p>Derivative of arbitrary sigmoid output <span class="arithmatex">\(s(z_j)\)</span> with respect to arbitrary linear combination output <span class="arithmatex">\(z_i\)</span>:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial s(z_j) }{\partial z_i} &amp;= \frac{\partial}{\partial z_i} \frac{e^{z_j}}{\sum^{K}_{k=1}e^{z_k}}\\\\
+    &amp;= \frac{\frac{\partial}{\partial z_i} e^{z_j} (\sum^{K}_{k=1}e^{z_k}) - e^{z_j} (\frac{\partial}{\partial z_i} \sum^{K}_{k=1}e^{z_k})}{(\sum^{K}_{k=1}e^{z_k})^2}\\\\
+    &amp;= 
+    \begin{cases}
+        \frac{\frac{\partial}{\partial z_i} e^{z_j} (\sum^{K}_{k=1}e^{z_k}) - e^{z_j} (\frac{\partial}{\partial z_i} \sum^{K}_{k=1}e^{z_k})}{(\sum^{K}_{k=1}e^{z_k})^2} &amp; i = j\\\\
+        \frac{\frac{\partial}{\partial z_i} e^{z_j} (\sum^{K}_{k=1}e^{z_k}) - e^{z_j} (\frac{\partial}{\partial z_i} \sum^{K}_{k=1}e^{z_k})}{(\sum^{K}_{k=1}e^{z_k})^2} &amp; i \neq j\\
+    \end{cases}\\\\
+    &amp;=
+    \begin{cases}
+        \frac{e^{z_i} (\sum^{K}_{k=1}e^{z_k}) - (e^{z_i})^2 }{(\sum^{K}_{k=1}e^{z_k})^2} &amp; i = j\\\\
+        \frac{0 - e^{z_j}e^{z_i} }{(\sum^{K}_{k=1}e^{z_k})^2} &amp; i \neq j\\
+    \end{cases}\\\\
+    &amp;=
+    \begin{cases}
+        s(z_i)(1 - s(z_i)) &amp; i = j\\
+        -s(z_j)s(z_i) &amp; i \neq j\\
+    \end{cases}\\\\
+    &amp;= s(z_i)(\delta_{i,j} - s(z_j)) \\
+\end{aligned}
+\]</div>
+<p>Derivative of loss function <span class="arithmatex">\(L\)</span> with respect to arbitrary linear combination output <span class="arithmatex">\(z_i\)</span>:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial L}{\partial z_i} &amp;= - \sum^{K}_{k=1} y_k \log s(z_k) \\
+    &amp;= - \left[ \frac{y_i}{s(z_i)}s(z_i)(1 - s(z_i)) - \sum^{K}_{k\neq i} \frac{y_k}{s(z_k)}(s(z_k)s(z_i))  \right]\\\\
+    &amp;= - \left[ y_i(1 - s(z_i)) - \sum^{K}_{k\neq i} y_k s(z_i) \right]\\\\
+    &amp;= - \left[ y_i - s(z_i) y_i  - \sum^{K}_{k\neq i} s(z_i) y_k  \right]\\\\
+    &amp;= - \left[ y_i - \sum^{K}_{k=1}  s(z_i) y_k \right]\\\\
+    &amp;= - \left[ y_i - s(z_i) \sum^{K}_{k=1}  y_k \right]\\\\
+    &amp;= s(z_i) - y_i\\\\
+\end{aligned}
+\]</div>
+<p>Derivative of weight <span class="arithmatex">\(w_i\)</span> with respect to linear combination <span class="arithmatex">\(z_i\)</span>:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial z_i}{\partial w_i} &amp;= \frac{\partial}{\partial w_i} w_i \times x_i\\
+    &amp;= x_i
+\end{aligned}
+\]</div>
+<p>Derivative of weight <span class="arithmatex">\(w_i\)</span> with respect to loss:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial L}{\partial w_i} &amp;= \frac{\partial z_i}{\partial w_i}\frac{\partial L}{\partial z_i}\\
+    &amp;= x_i (s(z_i) - y_i)\\
+\end{aligned}
+\]</div>
+<h3>Resources</h3>
+<ul>
+<li>Jurafsky, Daniel, and James H. Martin. Speech and Language Processing: An Introduction to Natural Language Processing, Computational Linguistics, and Speech Recognition. Pearson, 2020.</li>
+<li>Bendersky, Eli. “The Softmax Function and Its Derivative.” Eli Bendersky’s Website. 2016. https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/. Accessed 17 Mar. 2021.</li>
+</ul>
+    <script>
+      window.addEventListener('load', () => {
+        document.querySelectorAll('.arithmatex').forEach(el => {
+          const parentWidth = el.parentElement.clientWidth;
+          if (el.scrollWidth > parentWidth) {
+            const scale = parentWidth / (el.scrollWidth * 1.05);
+            el.style.transform = `scale(${scale})`;
+            el.style.transformOrigin = 'left center';
+            el.style.display = 'inline-block';
+            el.style.width = `${parentWidth}px`;
+          }
+        });
+      });
+    </script>
+</body>
+</html>

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Optimization for Deep Learning</title>
+    <link rel="stylesheet" href="../../css/blogpage.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    <script>
+        window.MathJax = {
+            tex: {
+              inlineMath: [['\\(', '\\)']],
+              displayMath: [['\\[', '\\]']],
+              processEscapes: true,
+              processEnvironments: true
+            },
+            options: {
+              ignoreHtmlClass: '.*',
+              processHtmlClass: 'arithmatex'
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <a href="/blog.html">Blog</a>
+    <h1>Optimization for Deep Learning</h1>
+<h3>Introduction</h3>
+<p>Optimization is the process used to minimize the loss function during the training process of a neural network.
+There are a variety of different approaches to optimization.
+This post will discuss some of those approaches, including gradient descent, stochastic gradient descent, RMSProp, and Adam.
+This post will also cover generalized optimization practices, such as momentum as well as adaptive learning.</p>
+<h3>Basic Optimization Methods</h3>
+<h4>Gradient Descent</h4>
+<p>Vanilla gradient descent is one of the simplest approaches to optimization.
+The general process is to reduce the loss function by moving the weights in the opposite direction of the gradient.
+The weight update performed in gradient descent is shown below:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    w &amp;= w - \alpha \frac{\partial L}{\partial w}&amp;
+    \text{Weight update}\\
+    \alpha &amp;\rightarrow \text{model hyperparameter} &amp;\\
+\end{aligned}
+\]</div>
+<h4>Stochastic Gradient Descent</h4>
+<p>Stochastic gradient descent is a variant of gradient descent and is one of the most popular optimization techniques in machine learning.
+The basic difference between stochastic gradient descent and plain gradient descent is that in stochastic gradient descent, weights are updated after a single randomly-drawn point of data is seen (or a randomly-drawn batch of data points), rather than only when the entire dataset has been seen, as in plain gradient descent.
+Minibatch stochastic gradient descent is a variant of stochastic gradient descent where the weights of a network are updated using a batch of randomly-drawn input data rather than a single data point.
+The weight updates for stochastic gradient descent and minibatch stochastic gradient descent are shown below:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    w &amp;= w - \alpha \frac{\partial L(y_i, f(x_i; w))}{\partial w}
+    &amp;\text{Weight update}\\
+    w &amp;= w - \alpha \left[\frac{1}{B}\sum^B_{i=1} \frac{\partial L(y_i, f(x_i;w))}{\partial w}\right]
+    &amp;\text{Minibatch weight update}\\
+    \alpha &amp;\rightarrow \text{model hyperparameter} &amp;\\
+\end{aligned}
+\]</div>
+<h4>Momentum</h4>
+<p>Momentum is a genralizable method to accelerate optimization that uses a moving average of past gradients to update weights rather than simply the last calculated gradient.
+The exponentially decaying moving average of gradients, <span class="arithmatex">\(v\)</span>, is the velocity at which the weights of the model move.
+Nesterov momentum is a momentum method variant that evaluates the gradient after applying the current velocity, rather than before, as in standard momentum.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    v &amp;= \epsilon v - \alpha \left[\frac{1}{B}\sum^B_{i=1}\frac{\partial L(y_i, f(x_i; w))}{\partial w}\right]
+    &amp; \text{SGD with Momentum}\\
+    v &amp;= \epsilon v - \alpha \left[\frac{1}{B}\sum^B_{i=1}\frac{\partial L(y_i, f(x_i; w + \epsilon v))}{\partial w}\right]
+    &amp; \text{SGD with Nesterov Momentum}\\
+    w &amp;= w + v 
+    &amp;\text{Weight update}\\
+    \alpha &amp;\rightarrow \text{model hyperparameter}&amp;\\
+    \epsilon &amp;\rightarrow \text{model hyperparameter}&amp;\\
+    v &amp; \rightarrow \text{velocity}&amp;\\
+\end{aligned}
+\]</div>
+<h3>Code</h3>
+<p>The code below displays an <code>Optimizer</code> class its subclasses for stochastic gradient descent and stochastic gradient descent with momentum.
+These classes are meant to be used in conjunction with the <code>Network</code> and <code>Layer</code> classes I describe in my earlier post, titled <em>Classification and Regression with Neural Networks</em>.
+The code for <code>Network</code> and <code>Layer</code> to be used with the <code>Optimizer</code> class can be found in the following package from my github page <a href="https://github.com/akshat0123/MLReview/tree/main/Packages/mlr/NN">here</a>.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Optimizer</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Abstract base class for optimizers</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize optimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>            
+
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Copy class instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update weights</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">SGDOptimizer</span><span class="p">(</span><span class="n">momentum</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optimizer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Return stochastic gradient descent optimizer</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        momentum: whether to include momentum or not</span>
+<span class="sd">        epsilon: epsilon parameter for momentum</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        stochastic gradient descent optimizer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">SGDMomentumOptimizer</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">)</span> <span class="k">if</span> <span class="n">momentum</span> <span class="k">else</span> <span class="n">DefaultSGDOptimizer</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">optimizer</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DefaultSGDOptimizer</span><span class="p">(</span><span class="n">Optimizer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Stochastic Gradient Descent optimizer (without momentum)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize default SGD optimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return copy of default SGD optimizer</span>
+
+<span class="sd">        Returns: </span>
+<span class="sd">            copy of optimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">DefaultSGDOptimizer</span><span class="p">()</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dw</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">lambdaa</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update weights</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            w: weight tensor</span>
+<span class="sd">            alpha: learning rate </span>
+<span class="sd">            dw: weight gradient</span>
+<span class="sd">            dr: regularization gradient</span>
+<span class="sd">            lambdaa: regularization lambda parameter</span>
+
+<span class="sd">        Returns: </span>
+<span class="sd">            updated weight tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">w</span> <span class="o">-</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="n">dw</span> <span class="o">+</span> <span class="p">(</span><span class="n">lambdaa</span> <span class="o">*</span> <span class="n">dr</span><span class="p">)))</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SGDMomentumOptimizer</span><span class="p">(</span><span class="n">Optimizer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Stochastic Gradient Descent optimizer (with momentum)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize default SGD optimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return copy of default SGD optimizer</span>
+
+<span class="sd">        Returns: </span>
+<span class="sd">            copy of optimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">SGDMomentumOptimizer</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>            
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dw</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">lambdaa</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update weights</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            w: weight tensor</span>
+<span class="sd">            alpha: learning rate </span>
+<span class="sd">            dw: weight gradient</span>
+<span class="sd">            dr: regularization gradient</span>
+<span class="sd">            lambdaa: regularization lambda parameter</span>
+
+<span class="sd">        Returns: </span>
+<span class="sd">            updated weight tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="n">dw</span> <span class="o">+</span> <span class="p">(</span><span class="n">lambdaa</span> <span class="o">*</span> <span class="n">dr</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">w</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span>
+</code></pre></div>
+
+<h3>Adaptive Learning Optimization Methods</h3>
+<h4>AdaGrad</h4>
+<p>AdaGrad is an optimization approach that has a learning rate for all parameters (<span class="arithmatex">\(r\)</span> in the equation below), and updates the learning rates continuously.
+Learning rates are decayed proportionally with regard to how often updates are made.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    r &amp;= r + \left[\frac{1}{B}\sum^B_{i=1}\frac{\partial L(y_i, f(x_i; w))}{\partial w}\right]^2\\
+    w &amp;= w - \frac{\alpha}{\delta + \sqrt{r}} \left[
+         \frac{1}{B} \sum^B_{i=1} \frac{\partial L(y_i, f(x_i; w))}{\partial w}
+     \right]\\
+     \alpha &amp;\rightarrow \text{model hyperparameter}\\
+     \delta &amp;\rightarrow \text{small constant, usually }10^{-6}\\
+\end{aligned}
+\]</div>
+<h4>RMSProp</h4>
+<p>RMSProp is an optimization approah that also has a learning rate for all parameters (<span class="arithmatex">\(r\)</span> in the equation below), and updates the learning rates continuously.
+When compared to AdaGrad, learning rates in RMSProp do not diminish nearly as fast.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    r &amp;= \rho r + (1-\rho) \left[
+         \frac{1}{B} \sum^B_{i=1} \frac{\partial L(y_i, f(x_i; w))}{\partial w}
+     \right]^2\\
+     w &amp;= w - \frac{\alpha}{\sqrt{\delta + r}} \left[
+         \frac{1}{B} \sum^B_{i=1} \frac{\partial L(y_i, f(x_i; w))}{\partial w}
+     \right]\\
+     \alpha &amp;\rightarrow \text{model hyperparameter}\\
+     \rho &amp;\rightarrow \text{model hyperparameter}\\
+     \delta &amp;\rightarrow \text{small constant, usually }10^{-6}\\
+\end{aligned}
+\]</div>
+<h4>RMSProp with Momentum</h4>
+<p>Momentum can also be added to the RMSProp optimization method as shown below:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    r &amp;= \rho r + (1-\rho) \left[
+         \frac{1}{B} \sum^B_{i=1} \frac{\partial L(y_i, f(x_i; w))}{\partial w}
+     \right]^2\\
+    v &amp;= \epsilon v - \frac{\alpha}{\sqrt{\delta + r}} \left[
+         \frac{1}{B} \sum^B_{i=1} \frac{\partial L(y_i, f(x_i; w))}{\partial w}
+     \right]\\
+    w &amp;= w + v\\
+    \alpha &amp;\rightarrow \text{model hyperparameter}\\
+    \rho &amp;\rightarrow \text{model hyperparameter}\\
+    \delta &amp;\rightarrow \text{small constant, usually }10^{-6}\\
+\end{aligned}
+\]</div>
+<h4>Adam</h4>
+<p>Adam is an adaptive learning optimization method that limits the quick diminishing of learning rates, similar to RMSProp.
+In addition, unlike RMSProp or AdaGrad, Adam also keeps a decaying average of nonsquared gradients (<span class="arithmatex">\(s\)</span> in the equation below), which can be seen to serve a purpose similar to momentum.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    s &amp;= \rho_1 s + (1 - \rho_1) \left[ 
+        \frac{1}{B} \sum^B_{i=1} 
+        \frac{\partial L(y_i, f(x_i; w))}{\partial w} 
+    \right]\\
+    r &amp;= \rho_2 r + (1 - \rho_2) \left[ 
+        \frac{1}{B} \sum^B_{i=1} 
+        \frac{\partial L(y_i, f(x_i; w))}{\partial w} 
+    \right]^2\\
+    \hat{s} &amp;= \frac{s}{1-\rho_1}\\
+    \hat{r} &amp;= \frac{r}{1-\rho_2}\\
+    w &amp;= w - \alpha \left[ 
+        \frac{\hat{s}}{\sqrt{\hat{r}} + \delta}
+    \right]\\
+    \alpha &amp;\rightarrow \text{model hyperparameter}\\
+    \rho_1 &amp;\rightarrow \text{model hyperparameter}\\
+    \rho_2 &amp;\rightarrow \text{model hyperparameter}\\
+    \delta &amp;\rightarrow \text{small constant, usually }10^{-6}\\
+\end{aligned}
+\]</div>
+<h3>Code</h3>
+<p>The code for AdaGrad, RMSProp, and Adam optimizers is displayed in the block below.
+These classes are meant to be used in conjunction with the <code>Network</code> and <code>Layer</code> classes I describe in my earlier post, titled <em>Classification and Regression with Neural Networks</em>.
+The code for <code>Network</code> and <code>Layer</code> to be used with the <code>Optimizer</code> class can be found in the following package from my github page <a href="https://github.com/akshat0123/MLReview/tree/main/Packages/mlr/NN">here</a>.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">AdaGradOptimizer</span><span class="p">(</span><span class="n">Optimizer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; AdaGrad optimizer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize AdaGrad optimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return copy of default SGD optimizer</span>
+
+<span class="sd">        Returns: </span>
+<span class="sd">            copy of optimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">AdaGradOptimizer</span><span class="p">()</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dw</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">lambdaa</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update weights</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            w: weight tensor</span>
+<span class="sd">            alpha: learning rate </span>
+<span class="sd">            dw: weight gradient</span>
+<span class="sd">            dr: regularization gradient</span>
+<span class="sd">            lambdaa: regularization lambda parameter</span>
+
+<span class="sd">        Returns: </span>
+<span class="sd">            updated weight tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">+</span> <span class="p">(</span><span class="n">dw</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="k">return</span> <span class="n">w</span> <span class="o">-</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="p">((</span><span class="n">dw</span> <span class="o">+</span> <span class="p">(</span><span class="n">lambdaa</span> <span class="o">*</span> <span class="n">dr</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">))))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">RMSPropOptimizer</span><span class="p">(</span><span class="n">momentum</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optimizer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Return RMSProp optimizer</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        momentum: whether to include momentum or not</span>
+<span class="sd">        epsilon: epsilon parameter for momentum</span>
+<span class="sd">        rho: rho parameter for RMSProp</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        RMSProp optimizer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">RMSPropMomentumOptimizer</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">)</span> <span class="k">if</span> <span class="n">momentum</span> <span class="k">else</span> <span class="n">DefaultRMSPropOptimizer</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">optimizer</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DefaultRMSPropOptimizer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; RMSProp optimizer (without momentum)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize optimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="n">rho</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return copy of DefaultRMSPropOptimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">DefaultRMSPropOptimizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dw</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">lambdaa</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update weights</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            w: weight tensor</span>
+<span class="sd">            alpha: learning rate </span>
+<span class="sd">            dw: weight gradient</span>
+<span class="sd">            dr: regularization gradient</span>
+<span class="sd">            lambdaa: regularization lambda parameter</span>
+
+<span class="sd">        Returns: </span>
+<span class="sd">            updated weight tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">dw</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">w</span> <span class="o">-</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="p">((</span><span class="n">dw</span> <span class="o">+</span> <span class="p">(</span><span class="n">lambdaa</span> <span class="o">*</span> <span class="n">dr</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">))))</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">RMSPropMomentumOptimizer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; RMSProp optimizer (without momentum)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize optimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-05</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="n">rho</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return copy of RMSPropMomentumOptimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">RMSPropMomentumOptimizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dw</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">lambdaa</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update weights</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            w: weight tensor</span>
+<span class="sd">            alpha: learning rate </span>
+<span class="sd">            dw: weight gradient</span>
+<span class="sd">            dr: regularization gradient</span>
+<span class="sd">            lambdaa: regularization lambda parameter</span>
+
+<span class="sd">        Returns: </span>
+<span class="sd">            updated weight tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>                
+            <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">dw</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="p">((</span><span class="n">dw</span> <span class="o">+</span> <span class="p">(</span><span class="n">lambdaa</span> <span class="o">*</span> <span class="n">dr</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">))))</span>
+
+        <span class="k">return</span> <span class="n">w</span> <span class="o">+</span> <span class="n">v</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">AdamOptimizer</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Adam optimizer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rho1</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">rho2</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.999</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize optimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho1</span> <span class="o">=</span> <span class="n">rho1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho2</span> <span class="o">=</span> <span class="n">rho2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return copy of AdamOptimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">AdamOptimizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho2</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dw</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">lambdaa</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update weights</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            w: weight tensor</span>
+<span class="sd">            alpha: learning rate </span>
+<span class="sd">            dw: weight gradient</span>
+<span class="sd">            dr: regularization gradient</span>
+<span class="sd">            lambdaa: regularization lambda parameter</span>
+
+<span class="sd">        Returns: </span>
+<span class="sd">            updated weight tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>                
+            <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>                
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">dw</span> <span class="o">+</span> <span class="p">(</span><span class="n">lambdaa</span> <span class="o">*</span> <span class="n">dr</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">dw</span> <span class="o">+</span> <span class="p">(</span><span class="n">lambdaa</span> <span class="o">*</span> <span class="n">dr</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">shat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho1</span><span class="p">)</span>
+        <span class="n">rhat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">w</span> <span class="o">-</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="n">shat</span> <span class="o">/</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rhat</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">)))</span>
+</code></pre></div>
+
+<h3>Resources</h3>
+<ul>
+<li>Goodfellow, Ian, et al. <em>Deep Learning</em>. MIT Press, 2017.</li>
+</ul>
+    <script>
+      window.addEventListener('load', () => {
+        document.querySelectorAll('.arithmatex').forEach(el => {
+          const parentWidth = el.parentElement.clientWidth;
+          if (el.scrollWidth > parentWidth) {
+            const scale = parentWidth / (el.scrollWidth * 1.05);
+            el.style.transform = `scale(${scale})`;
+            el.style.transformOrigin = 'left center';
+            el.style.display = 'inline-block';
+            el.style.width = `${parentWidth}px`;
+          }
+        });
+      });
+    </script>
+</body>
+</html>

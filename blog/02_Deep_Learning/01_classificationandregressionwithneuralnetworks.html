@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Classification and Regression with Neural Networks</title>
+    <link rel="stylesheet" href="../../css/blogpage.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    <script>
+        window.MathJax = {
+            tex: {
+              inlineMath: [['\\(', '\\)']],
+              displayMath: [['\\[', '\\]']],
+              processEscapes: true,
+              processEnvironments: true
+            },
+            options: {
+              ignoreHtmlClass: '.*',
+              processHtmlClass: 'arithmatex'
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <a href="/blog.html">Blog</a>
+    <h1>Classification and Regression with Neural Networks</h1>
+<h3>Introduction</h3>
+<p>Neural networks are models that approximate functions using an architecture that is based loosely on the architecture of human neurons.
+Neural networks are composed of a network of units organized into layers, called hidden units.
+The term "Deep Learning" refers to neural network architectures composed of many hidden layers, making the network "deep".</p>
+<p>In this post, single hidden layer neural networks will be discussed - one for binary classification, one for multiclass classification, and one for regression output.
+I will be briefly reviewing logistic regression, softmax regression, and linear regression here in order to introduce neural networks, but it may help to take a look at my earlier posts on logistic regression, softmax regression, and linear regression before proceeding.
+This post will also only contain information on dense feed-forward layers, which are layers in which units are fully-connected, and data only flows in one direction during prediction. 
+Information on more complex architectures, like convolutional or recurrent neural networks will not be covered here.</p>
+<h3>Binary classification with a neural network</h3>
+<p>To begin understanding how binary classification with feed-forward neural networks, lets first take a look at how logistic regression works.
+To review, logistic regression is a parametric binary classification method that takes real-valued inputs and returns a binary class output estimate.
+The computation graph below shows how logistic regression computes output.
+A dot product <span class="arithmatex">\(z\)</span> is calculated between input vector <span class="arithmatex">\(\vec{x}\)</span> and weight vector <span class="arithmatex">\(\vec{w}\)</span>, and the sigmoid function is taken of <span class="arithmatex">\(z\)</span>.
+In the context of neural networks, the sigmoid function would be referred to as the activation function in the output layer. </p>
+<p><img alt="png" src="../../images/blog/classificationandregressionwithneuralnetworks_6_0.png" /></p>
+<p>Parameters <span class="arithmatex">\(\vec{w}\)</span> are learned through the use of gradient descent, which minimizes a loss function by iteratively moving in the direction of steepest descent. 
+In this case, the loss function being used is binary cross-entropy loss, <span class="arithmatex">\(L(y, \hat{y}) = -[y \log(\hat{y}) + (1-y)\log(1-\hat{y})]\)</span>.
+The loss is minimized by updating the weights iteratively, by adding the negative partial derivative of the loss with respect to the weights to the weight vector at each step.</p>
+<p>Instead of directly calculating <span class="arithmatex">\(\frac{\partial L}{\partial w_i}\)</span> at each iteration, which is <span class="arithmatex">\(x_i (\sigma(z)-y)\)</span> (this is derived in my earlier post on logistic regression), making use of the computation graph shown below, partial derivatives are calculated locally, and sent backward across forward connections.
+This process of sending local gradients backward across layers to calculate weight updates is known as backpropagation.
+In the graph below, the local gradients used in backpropagation are shown in red.</p>
+<p>As an example, in a single iteration, <span class="arithmatex">\(w_1\)</span> is updated using gradient descent as follows:
+$$
+\begin{aligned}
+    w_1 &amp;= w_1 - \alpha \frac{\partial L}{\partial w_1}\
+\end{aligned}
+$$
+Following the backpropagation arrows from loss <span class="arithmatex">\(L\)</span> to <span class="arithmatex">\(w_1\)</span>, the partial derivative of the loss <span class="arithmatex">\(L\)</span> with respect to <span class="arithmatex">\(w_1\)</span>, <span class="arithmatex">\(\frac{\partial L}{\partial w_1}\)</span> can be calculated as follows:
+$$
+\begin{aligned}
+    \frac{\partial L}{\partial w_1} &amp;= 
+    \frac{\partial z}{\partial w_1} 
+    \frac{\partial \sigma(z)}{\partial z}
+    \frac{\partial L}{\partial \sigma(z)} \
+\end{aligned}
+$$</p>
+<p>The advantage to using the local gradients to calculate the loss with respect to the weights is that an arbitrary number of layers can be added in between the input and output layers, without having to change the general approach to updating weights at each layer.</p>
+<p><img alt="png" src="../../images/blog/classificationandregressionwithneuralnetworks_8_0.png" /></p>
+<p>The computation graph below displays a binary classification model similar to the one above, but with the addition of a hidden layer containing <span class="arithmatex">\(E\)</span> units. 
+In this graph, units labelled with <span class="arithmatex">\(a\)</span> and a corresponding subscript represent activation functions.
+In the final layer, similar to the computation graph above, the activation function will be the sigmoid function.
+In hidden layers, the activation function could be one of many options. 
+Some example activation functions are the ReLU, sigmoid, softmax, and tanh functions.</p>
+<p>Each layer other than the input layer has its own set of weights.
+The red backpropagation path shows the partial derivatives needed for the first set of weights, and the blue backpropagation path shows the partial derivatives needed for the second set of weights.
+In order to maintain clarity in the diagram, all backpropogation paths are not exhaustively displayed.</p>
+<p>As an example, in this model, updating <span class="arithmatex">\(w_1\)</span>, from the second set of weights can be performed by following the blue path as shown:
+$$
+\begin{aligned}
+    w_1 &amp;= w_1 - \alpha \frac{\partial L}{\partial w_1}\
+    \frac{\partial L}{\partial w_1} &amp;=<br />
+    \frac{\partial z_{2, 1}}{\partial w_1} 
+    \frac{\partial a_{2, 1}}{\partial z_{2, 1}}
+    \frac{\partial L}{\partial a_{2, 1}} \
+\end{aligned}
+$$
+Updating <span class="arithmatex">\(w_{1, 1}\)</span> from the first set of weights can be performed by following the red path in the computation graph as shown:
+$$
+\begin{aligned}
+    w_{1, 1} &amp;= w_{1, 1} - \alpha \frac{\partial L}{\partial w_{1, 1}}\
+    \frac{\partial L}{\partial w_{1, 1}} &amp;= 
+    \frac{\partial z_{1, 1}}{\partial w_{1, 1}} 
+    \frac{\partial a_{1, 1}}{\partial z_{1, 1}} 
+    \frac{\partial z_{2, 1}}{\partial a_{1, 1}} 
+    \frac{\partial a_{2, 1}}{\partial z_{2, 1}} 
+    \frac{\partial L       }{\partial a_{2, 1}} \ 
+\end{aligned}
+$$</p>
+<p><img alt="png" src="../../images/blog/classificationandregressionwithneuralnetworks_10_0.png" /></p>
+<h3>Code</h3>
+<p>The code for a feed-forward neural network layer is shown below.
+The provided <code>DefaultDenseLayer</code> class can be used to construct either of the two neural networks shown in the prior two computation graphs.
+A wrapper class for easier use of multiple layers together will be provided later in this post.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">Relu</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Relu activation function</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x: input tensor</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        activated output tensor</span>
+<span class="sd">        local gradient </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">output</span><span class="p">,</span> <span class="n">grad</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>                
+    <span class="n">output</span><span class="p">[</span><span class="n">output</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> 
+    <span class="n">grad</span><span class="p">[</span><span class="n">grad</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">grad</span><span class="p">[</span><span class="n">grad</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> 
+    <span class="k">return</span> <span class="n">output</span><span class="p">,</span> <span class="n">grad</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">Sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span> 
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Sigmoid activation function</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x: input tensor</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        activated output tensor</span>
+<span class="sd">        local gradient </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">output</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">)))</span>
+    <span class="n">grad</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">output</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">output</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">output</span><span class="p">,</span> <span class="n">grad</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">Softmax</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Softmax activation function</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x: input tensor</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        activated output tensor</span>
+<span class="sd">        local gradient </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">output</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">diags</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">torch</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
+    <span class="n">grad</span> <span class="o">=</span> <span class="n">diags</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,ik-&gt;ijk&#39;</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span><span class="p">,</span> <span class="n">grad</span>
+
+
+<span class="c1"># Applicable activation functions</span>
+<span class="n">ACTIVATIONS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;relu&#39;</span>   <span class="p">:</span> <span class="n">Relu</span><span class="p">,</span>
+    <span class="s1">&#39;sigmoid&#39;</span><span class="p">:</span> <span class="n">Sigmoid</span><span class="p">,</span>
+    <span class="s1">&#39;softmax&#39;</span><span class="p">:</span> <span class="n">Softmax</span>
+<span class="p">}</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Layer</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Abstract base class for neural network layers</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize layer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Run forward pass</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Run backward propagation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">Dense</span><span class="p">(</span><span class="n">inputdim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">activation</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Layer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns appropriate initialized layer architecture provided activation</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        inputdim: number of input units</span>
+<span class="sd">        units: number of units in layer</span>
+<span class="sd">        activation: activation function string =&gt; should be a key of ACTIVATIONS</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Initialized neural network layer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">activation</span> <span class="o">==</span> <span class="s1">&#39;softmax&#39;</span><span class="p">:</span>                
+        <span class="k">return</span> <span class="n">SoftmaxDenseLayer</span><span class="p">(</span><span class="n">inputdim</span><span class="o">=</span><span class="n">inputdim</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;softmax&#39;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span> 
+        <span class="k">return</span> <span class="n">DefaultDenseLayer</span><span class="p">(</span><span class="n">inputdim</span><span class="o">=</span><span class="n">inputdim</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">)</span>            
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DefaultDenseLayer</span><span class="p">(</span><span class="n">Layer</span><span class="p">):</span> 
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Default dense layer class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputdim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">activation</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize default dense layer</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            inputdim: number of input units</span>
+<span class="sd">            units: number of units in layer</span>
+<span class="sd">            activation: activation function string =&gt; should be a key of ACTIVATIONS</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="n">inputdim</span><span class="p">,</span> <span class="n">units</span><span class="p">))</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">activation</span> <span class="o">=</span> <span class="n">activation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dz_dw</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dz_dx</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">da_dz</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Run forward pass through layer, saving local gradients</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            output of layer given input x</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz_dw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz_dx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,jk-&gt;ik&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">),</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span>
+        <span class="n">a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">da_dz</span> <span class="o">=</span> <span class="n">ACTIVATIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">](</span><span class="n">z</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">a</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dl</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Run backward pass through layer, updating weights and returning</span>
+<span class="sd">            cumulative gradient from last connected layer (output layer)</span>
+<span class="sd">            backwards through to this layer</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dl: cumulative gradient calculated from layers ahead of this layer</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            cumulative gradient calculated at this layer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">dl_dz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">da_dz</span> <span class="o">*</span> <span class="n">dl</span>
+        <span class="n">dl_dw</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,ik-&gt;jk&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz_dw</span><span class="p">,</span> <span class="n">dl_dz</span><span class="p">)</span> <span class="o">/</span> <span class="n">dl</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> 
+        <span class="n">dl_dx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,kj-&gt;ki&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz_dx</span><span class="p">,</span> <span class="n">dl_dz</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">-=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">dl_dw</span>
+        <span class="k">return</span> <span class="n">dl_dx</span>
+</code></pre></div>
+
+<h3>Multinomial classification with a neural network</h3>
+<p>In order to perform multinomial classification, the softmax function can be used in the output layer with as many units as possible classes.
+The computation graph below display a multinomial logistic regression model. 
+In this case, the softmax function is used as an activation function rather than the logistic function.
+Compared to the logistic regression computation graph, there are more backpropagating paths from the loss to the weights.
+This is due to the fact that the softmax functions operates on vectors rather than single units, so each member of the vector <span class="arithmatex">\(\vec{z}\)</span> influences every output of the vector <span class="arithmatex">\(\vec{s(z)}\)</span>.</p>
+<p>As an example, in this model, updating weight <span class="arithmatex">\(w_{1, 1}\)</span> requires looking at 3 different paths (shown in red on the computation graph).
+Local derivatives are multiplied across backpropagation graphs, and added together where paths meet.
+The update is calculated as follows:
+$$
+\begin{aligned}
+    w_{1, 1} &amp;= w_{1, 1} - \alpha \frac{\partial L}{\partial w_{1, 1}} \
+    \frac{\partial L}{\partial w_{1, 1}} &amp;= 
+    \frac{\partial z_1}{\partial w_{1, 1}}\frac{\partial s(z_1)}{\partial z_1}\frac{\partial L}{\partial s(z_1)} + 
+    \frac{\partial z_1}{\partial w_{1, 1}}\frac{\partial s(z_2)}{\partial z_1}\frac{\partial L}{\partial s(z_2)} +
+    \frac{\partial z_1}{\partial w_{1, 1}}\frac{\partial s(z_K)}{\partial z_1}\frac{\partial L}{\partial s(z_K)}\
+    &amp;=
+    \frac{\partial z_1}{\partial w_{1, 1}} \left[ 
+    \frac{\partial s(z_1)}{\partial z_1}\frac{\partial L}{\partial s(z_1)} + 
+    \frac{\partial s(z_2)}{\partial z_1}\frac{\partial L}{\partial s(z_2)} +
+    \frac{\partial s(z_K)}{\partial z_1}\frac{\partial L}{\partial s(z_K)} 
+    \right]
+    \
+\end{aligned}
+$$</p>
+<p><img alt="png" src="../../images/blog/classificationandregressionwithneuralnetworks_16_0.png" /></p>
+<p>The computation graph below displays a multinomial classification model similar to the one above, but with the addition of a hidden layer containing <span class="arithmatex">\(E\)</span> units. 
+In this graph, units labelled with <span class="arithmatex">\(a\)</span> and a corresponding subscript represent activation functions.
+In the final layer, similar to the computation graph above, the activation function will be the softmax function.
+In hidden layers, the activation function could be one of many options.
+However, because the <span class="arithmatex">\(z_{1..E}\)</span> nodes in the hidden layer are not fully connected to the <span class="arithmatex">\(a_{1..E}\)</span> nodes in the hidden layer, we know the activation function is not softmax in this case.
+Some example activation functions are the ReLU, sigmoid, softmax, and tanh functions.
+Backpropagation paths are not shown in this graph, but should not be to difficult to figure out as an exercise based on the prior computation graphs discussed in this post.</p>
+<p><img alt="png" src="../../images/blog/classificationandregressionwithneuralnetworks_18_0.png" /></p>
+<h3>Code</h3>
+<p>The code for a feed-forward softmax neural network layer is shown below.
+The <code>forward</code> and <code>__init__</code> functions of the <code>SoftmaxDenseLayer</code> class are inherited from the <code>DefaultDenseLayer</code> class. 
+Togther, the <code>SoftmaxDenseLayer</code> and <code>DefaultDenseLayer</code> classes can be used together to create any of the computation graphs described in this post so far.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">SoftmaxDenseLayer</span><span class="p">(</span><span class="n">DefaultDenseLayer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Dense layer class for multinomial classification using the Softmax</span>
+<span class="sd">        activation function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dl</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Run backward pass through layer, updating weights and returning</span>
+<span class="sd">            cumulative gradient from last connected layer (output layer)</span>
+<span class="sd">            backwards through to this layer</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dl: cumulative gradient calculated from layers ahead of this layer</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            cumulative gradient calculated at this layer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">dl_dz</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ijk,ik-&gt;ij&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">da_dz</span><span class="p">,</span> <span class="n">dl</span><span class="p">)</span>
+        <span class="n">dl_dw</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,ik-&gt;jk&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz_dw</span><span class="p">,</span> <span class="n">dl_dz</span><span class="p">)</span> <span class="o">/</span> <span class="n">dl</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> 
+        <span class="n">dl_dx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,kj-&gt;ki&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz_dx</span><span class="p">,</span> <span class="n">dl_dz</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">-=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">dl_dw</span>
+
+        <span class="k">return</span> <span class="n">dl_dx</span>
+</code></pre></div>
+
+<h3>Regression with a neural network</h3>
+<p>Regression problems can be approached with neural networks by simply creating an output layer with a single hidden unit and no activation function.
+Without an activation function on the dot product produced in the output layer, the resulting output of the network will be a continuous quantity output.
+The <code>DefaultDenseLayer</code> displayed earlier in this post can be used to learn regression models when the identity function is used as an activation.</p>
+<h3>Combining layers: neural network model code</h3>
+<p>The code for a wrapper model that can be used to combine multiple <code>Layer</code> objects into a single model is displayed below.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">mlr.NN.Loss</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">trange</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">ErrorRate</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">yhat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate error rate given true and predicted values</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y: true values</span>
+<span class="sd">        yhat: predicted values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        error rate</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span> <span class="n">err</span> <span class="o">=</span> <span class="n">OneHotErrorRate</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">err</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span> <span class="o">!=</span> <span class="n">yhat</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">())</span> <span class="o">/</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">err</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">OneHotErrorRate</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">yhat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate error rate given true and predicted values for one-hot encoded</span>
+<span class="sd">        vectors</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y: true values</span>
+<span class="sd">        yhat: predicted values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        error rate</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">ErrorRate</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">yhat</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">Accuracy</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">yhat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate accuracy given true and predicted values</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y: true values</span>
+<span class="sd">        yhat: predicted values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        accuracy </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ErrorRate</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">BinaryCrossEntropy</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">yhat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate binary cross entropy given true values and predictions, and</span>
+<span class="sd">        returns loss as well as local gradient</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y: true values</span>
+<span class="sd">        yhat: predicted values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        binary cross entorpy loss</span>
+<span class="sd">        local gradient</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">output</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span> <span class="p">((</span><span class="n">y</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">yhat</span><span class="p">))</span> <span class="o">+</span> <span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">yhat</span><span class="p">))))</span>
+    <span class="n">grad</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">yhat</span><span class="p">))</span> <span class="o">-</span> <span class="p">(</span><span class="n">y</span> <span class="o">/</span> <span class="n">yhat</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span><span class="p">,</span> <span class="n">grad</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">CategoricalCrossEntropy</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">yhat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate categorical cross entropy given true values and predictions,</span>
+<span class="sd">        and returns loss as well as local gradient</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y: true values</span>
+<span class="sd">        yhat: predicted values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        categorical cross entorpy loss</span>
+<span class="sd">        local gradient</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">yhat</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">grad</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span> <span class="o">/</span> <span class="n">yhat</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">grad</span>            
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">MeanSquaredError</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">yhat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate mean squared error given true values and predictions, and</span>
+<span class="sd">        returns loss as well as local gradient</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y: true values</span>
+<span class="sd">        yhat: predicted values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        mean squared error loss</span>
+<span class="sd">        local gradient</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">y</span> <span class="o">-</span> <span class="n">yhat</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">grad</span> <span class="o">=</span> <span class="n">yhat</span> <span class="o">-</span> <span class="n">y</span>
+    <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">grad</span>
+
+
+<span class="c1"># Applicable loss functions</span>
+<span class="n">LOSSES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;binary_cross_entropy&#39;</span><span class="p">:</span>      <span class="n">BinaryCrossEntropy</span><span class="p">,</span>
+    <span class="s1">&#39;categorical_cross_entropy&#39;</span><span class="p">:</span> <span class="n">CategoricalCrossEntropy</span><span class="p">,</span>
+    <span class="s1">&#39;mean_squared_error&#39;</span><span class="p">:</span>        <span class="n">MeanSquaredError</span>
+<span class="p">}</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Network</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Abstract base class for neural network models </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Run forward pass through network</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Run backpropagation through network</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Fit network to data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return predictions given input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">Model</span><span class="p">(</span><span class="n">layers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Layer</span><span class="p">],</span> <span class="n">loss</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Network</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Return initialized neural network model provided loss type</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        layers: list of initialized neural network Layer objects</span>
+<span class="sd">        loss: string describing loss type =&gt; should be a key of LOSSES</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Initialized neural nework model object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">loss</span> <span class="o">==</span> <span class="s1">&#39;binary_cross_entropy&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">BinaryClassifier</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="s1">&#39;binary_cross_entropy&#39;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">loss</span> <span class="o">==</span> <span class="s1">&#39;categorical_cross_entropy&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">DefaultClassifier</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="s1">&#39;categorical_cross_entropy&#39;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">loss</span> <span class="o">==</span> <span class="s1">&#39;mean_squared_error&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">DefaultRegressor</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="s1">&#39;mean_squared_error&#39;</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DefaultClassifier</span><span class="p">(</span><span class="n">Network</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Default classifier class (one-hot encoded multinomial output)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Layer</span><span class="p">],</span> <span class="n">loss</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize model</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            layers: list of initialized neural network Layer objects</span>
+<span class="sd">            loss: string describing loss type =&gt; should be a key of LOSSES</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">layers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">loss</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Run forward pass through network</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            output of final layer in network</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">ypred</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+            <span class="n">ypred</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">ypred</span><span class="p">)</span>                        
+
+        <span class="k">return</span> <span class="n">ypred</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dl</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Run backpropagation through network</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dl: cumlulative gradient at loss function</span>
+<span class="sd">            alpha: learning rate</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">dl</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">dl</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Fit network to data</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+<span class="sd">            y: input labels</span>
+<span class="sd">            batch: batch size for training</span>
+<span class="sd">            alpha: learning rate</span>
+<span class="sd">            epochs: number of iterations over entire dataset to train</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">epochs</span> <span class="o">=</span> <span class="n">trange</span><span class="p">(</span><span class="n">epochs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">epochs</span><span class="p">:</span>
+
+            <span class="n">l</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="p">[],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">batch</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+
+                <span class="n">xbatch</span><span class="p">,</span> <span class="n">ybatch</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">xbatch</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+                    <span class="n">ypred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">xbatch</span><span class="p">)</span>              <span class="c1"># Forward pass</span>
+                    <span class="n">bl</span><span class="p">,</span> <span class="n">dl</span> <span class="o">=</span> <span class="n">LOSSES</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">](</span><span class="n">ybatch</span><span class="p">,</span> <span class="n">ypred</span><span class="p">)</span> <span class="c1"># Calculate loss</span>
+                    <span class="n">dl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">dl</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>             <span class="c1"># Backpropagation</span>
+                    <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bl</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+
+                <span class="n">start</span> <span class="o">+=</span> <span class="n">batch</span><span class="p">;</span> <span class="n">end</span> <span class="o">+=</span> <span class="n">batch</span>
+
+            <span class="n">ypred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">acc</span> <span class="o">=</span> <span class="n">Accuracy</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">ypred</span><span class="p">)</span>
+            <span class="n">epochs</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s1">&#39;Loss: </span><span class="si">%.8f</span><span class="s1"> | Acc: </span><span class="si">%.8f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">),</span> <span class="n">acc</span><span class="p">))</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return predictions given input</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            predictions               </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">BinaryClassifier</span><span class="p">(</span><span class="n">DefaultClassifier</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Classifier class for binomial output only</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return predictions given input</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            predictions               </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">ypred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">==</span> <span class="s1">&#39;binary_cross_entropy&#39;</span><span class="p">:</span>
+            <span class="n">ypred</span><span class="p">[</span><span class="n">ypred</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">ypred</span><span class="p">[</span><span class="n">ypred</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">return</span> <span class="n">ypred</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DefaultRegressor</span><span class="p">(</span><span class="n">DefaultClassifier</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Default regressor class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Fit network to data</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+<span class="sd">            y: input labels</span>
+<span class="sd">            batch: batch size for training</span>
+<span class="sd">            alpha: learning rate</span>
+<span class="sd">            epochs: number of iterations over entire dataset to train</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">epochs</span> <span class="o">=</span> <span class="n">trange</span><span class="p">(</span><span class="n">epochs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">epochs</span><span class="p">:</span>
+
+            <span class="n">l</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="p">[],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">batch</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+
+                <span class="n">xbatch</span><span class="p">,</span> <span class="n">ybatch</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">xbatch</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+                    <span class="n">ypred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">xbatch</span><span class="p">)</span>              <span class="c1"># Forward pass</span>
+                    <span class="n">bl</span><span class="p">,</span> <span class="n">dl</span> <span class="o">=</span> <span class="n">LOSSES</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">](</span><span class="n">ybatch</span><span class="p">,</span> <span class="n">ypred</span><span class="p">)</span> <span class="c1"># Calculate loss</span>
+                    <span class="n">dl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">dl</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>             <span class="c1"># Backpropagation</span>
+                    <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bl</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+
+                <span class="n">start</span> <span class="o">+=</span> <span class="n">batch</span> 
+                <span class="n">end</span> <span class="o">+=</span> <span class="n">batch</span>
+
+            <span class="n">ypred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">mse</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">MeanSquaredError</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">ypred</span><span class="p">)</span>
+            <span class="n">epochs</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s1">&#39;Loss: </span><span class="si">%.8f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mse</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Example usage of the above model for a multinomial classification problem is shown below. 
+For those with experience with the Keras framework, the syntax may be familiar.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Initialize 2 Layer neural network</span>
+<span class="n">dnn</span> <span class="o">=</span> <span class="n">Model</span><span class="p">([</span>
+    <span class="n">Dense</span><span class="p">(</span><span class="n">inputdim</span><span class="o">=</span><span class="n">xtrain</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
+    <span class="n">Dense</span><span class="p">(</span><span class="n">inputdim</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;softmax&#39;</span><span class="p">)</span>
+<span class="p">],</span> <span class="n">loss</span><span class="o">=</span><span class="s1">&#39;categorical_cross_entropy&#39;</span><span class="p">)</span>
+
+<span class="c1"># Train on data</span>
+<span class="n">dnn</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">xtrain</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">ytrain</span><span class="p">,</span> <span class="n">batch</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="c1"># Test</span>
+<span class="n">ypred</span> <span class="o">=</span> <span class="n">dnn</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xtest</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Test Accuracy: </span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">Accuracy</span><span class="p">(</span><span class="n">ytest</span><span class="p">,</span> <span class="n">ypred</span><span class="p">))</span>
+</code></pre></div>
+
+<h3>Resources</h3>
+<ul>
+<li>Burkov, Andriy. <em>The Hundred Page Machine Learning Book</em>. 2019.</li>
+<li>Jurafsky, Daniel, and James H. Martin. <em>Speech and Language Processing: An Introduction to Natural Language Processing, Computational Linguistics, and Speech Recognition</em>. Pearson, 2020.</li>
+<li>Goodfellow, Ian, et al. <em>Deep Learning</em>. MIT Press, 2017. </li>
+</ul>
+    <script>
+      window.addEventListener('load', () => {
+        document.querySelectorAll('.arithmatex').forEach(el => {
+          const parentWidth = el.parentElement.clientWidth;
+          if (el.scrollWidth > parentWidth) {
+            const scale = parentWidth / (el.scrollWidth * 1.05);
+            el.style.transform = `scale(${scale})`;
+            el.style.transformOrigin = 'left center';
+            el.style.display = 'inline-block';
+            el.style.width = `${parentWidth}px`;
+          }
+        });
+      });
+    </script>
+</body>
+</html>

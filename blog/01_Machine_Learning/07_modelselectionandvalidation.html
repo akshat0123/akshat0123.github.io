@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Model Selection and Validation</title>
+    <link rel="stylesheet" href="../../css/blogpage.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    <script>
+        window.MathJax = {
+            tex: {
+              inlineMath: [['\\(', '\\)']],
+              displayMath: [['\\[', '\\]']],
+              processEscapes: true,
+              processEnvironments: true
+            },
+            options: {
+              ignoreHtmlClass: '.*',
+              processHtmlClass: 'arithmatex'
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <a href="/blog.html">Blog</a>
+    <h1>Model Selection and Validation</h1>
+<h3>Introduction</h3>
+<p>Without the use of proper metrics and the appropriate validation approach during training, one cannot be confident that a trained model will indeed perform well in the wild.
+This post goes into the basics of choosing a metric for a model and the <span class="arithmatex">\(K\)</span>-fold cross validation method for validating models. 
+The bias-variance problem in model selection is also touched upon briefly.</p>
+<h3>Performance Metrics</h3>
+<h4>Confusion Matrix</h4>
+<p>A confusion matrix is a table that compares a models predicted class selections with the actual class labels in the dataset.
+From top right corner to the bottom left corner, the entries of the confusion matrix are the true positive count, the false positive count, the false negative count, and the false positive count. 
+The true positive count is the number of data points correctly predicted as true and the true negative count is the number of data points correctly predicted as false.
+The false positive count is the number of data points predicted true that are actually false, and the false negative count is the number of data points predicted false that are actually true.
+It should be noted that the example confusion matrix below only handles cases of binary classification.
+Generally speaking the confusion matrix is of dimensions <span class="arithmatex">\(K \times K\)</span>, where <span class="arithmatex">\(K\)</span> is the total number of possible classes.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;"></th>
+<th style="text-align: center;">Actual True</th>
+<th style="text-align: center;">Actual False</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">Predicted True</td>
+<td style="text-align: center;">TP</td>
+<td style="text-align: center;">FP</td>
+</tr>
+<tr>
+<td style="text-align: center;">Predicted False</td>
+<td style="text-align: center;">FN</td>
+<td style="text-align: center;">TN</td>
+</tr>
+</tbody>
+</table>
+<h4>Metrics</h4>
+<p>A variety of metrics can be used to evaluate a trained model's performance given a particular dataset. 
+The list below displays some of those metrics.
+All of the displayed metrics are shown with a definition formed by components of the confusion matrix, and are only applicable for classification problems.
+For regression problems, common evaluation metrics are mean squared error and mean absolute error.
+The appropriate metric to be used is dependent on the problem being examined as well as the desired goals for a model.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    acc &amp;= \frac{TP + TN}{TP + TN + FP + FN} &amp; \text{Accuracy}\\
+    err &amp;= \frac{FP + FN}{TP + TN + FP + FN} &amp; \text{Error Rate}\\
+    TPR &amp;= \frac{TP}{TP + FN} &amp;\text{True Positive Rate or Recall}\\
+    TNR &amp;= \frac{TN}{TN + FP} &amp;\text{True Negative Rate or Specificity}\\
+    FPR &amp;= \frac{FP}{FP + TN} &amp;\text{False Positive Rate}\\
+    PPV &amp;= \frac{TP}{TP + FP} &amp;\text{Positive Predictive Value or Precision}\\
+    F &amp;= \frac{2TP}{2TP + FP + FN} &amp; \text{F1 score}\\
+\end{aligned}
+\]</div>
+<h4>PR Curve and ROC Curve</h4>
+<p>The ROC curve measures the trade-off between the true and false positive rates at different thresholds and the PR curve measures the trade-off between precision and recall (hence, PR) at different thresholds.
+For both ROC and PR curves, the thresholds are defined by the inclusion of each data point.
+The metrics for each curve calculated at each data point and added to the curve. </p>
+<p>With regard to the ROC curve, a good model will have a high true positive rate, and a low false positive rate. 
+Given a PR curve, a model with good performance will have both a high precision and a high recall.
+With no modification, both curves are used only in binary classification, although one can adopt a one-vs-all approach for multiclass situations.
+ROC curves are often more popular in cases where class outputs are balanced, while PR curves may be a better fit when class outputs are not balanced.</p>
+<h3>Bias and Variance</h3>
+<p>The bias-variance tradeoff is a well known general problem that occurs during the training of any supervise machine learning model.
+Bias is the average difference between model output and true values.
+Variance measures a model's variability in output given the dataset it is trained on.</p>
+<p>As model complexity increases, variance increases and bias decreases.
+Variance that is too high will lead to overfitting of the training data, and bias that is too high will lead to underfitting on the training data.
+Overfitting occurs when a model performs well on a training data set, but is not able to generalize to unseen data. 
+Underfitting occurs when a model is not able to perform well on the training data set.
+Ideally, one needs to choose a model with sufficient complexity to learn from the availabe training data, but not so high that overfitting occurs.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    E_{x,y,D} \left[ (h_D(x) - y)^2 \right] &amp;= 
+    E_x \left[ (\bar{h}(x) - \bar{y}(x))^2 \right] +
+    E_{x, D} \left[ h_D(x) - \bar{h}(x))^2 \right] +
+    E_{x, y} \left[ (\bar{y}(x) - y)^2 \right] \\
+    \text{Bias} &amp;= E_x \left[ (\bar{h}(x) - \bar{y}(x))^2 \right]\\
+    \text{Variance} &amp;= E_{x, D} \left[ h_D(x) - \bar{h}(x))^2 \right]\\
+    \text{Noise} &amp;= E_{x, y} \left[ (\bar{y}(x) - y)^2 \right] \\
+    \text{Expected Test Error} &amp;= \text{Bias}^2 + \text{Variance} +  \text{Noise}\\
+\end{aligned}
+\]</div>
+<p>The bias variance decomposition derivation for mean squared error is shown below:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    E \left[ (h_D(x) - y)^2 \right] &amp;= E_{x,y,D}\left[ (h_D(x) + \bar{h}(x) - \bar{h}(x) - y)^2 \right]&amp;\text{EQ 1}\\
+    &amp;= E_{x,y,D}\left[ ((h_D(x) - \bar{h}(x)) + (\bar{h}(x) - y))^2 \right]\\
+    &amp;= E_{x,y,D}\left[ 
+        (h_D(x) - \bar{h}(x))^2 + 
+        2(h_D(x) - \bar{h}(x))(\bar{h}(x) - y)+ 
+        (\bar{h}(x) - y)^2 
+    \right]\\
+    &amp;= 
+    E_{x,D}\left[(h_D(x) - \bar{h}(x))^2\right] +
+    2E_{x,y,D}\left[ (h_D(x) - \bar{h}(x))(\bar{h}(x) - y)\right] +
+    E_{x,y}\left[ \bar{h}(x) - y)^2\right]\\
+    &amp;= 
+    E_{x,D}\left[(h_D(x) - \bar{h}(x))^2\right] +
+    \text{EQ 2} +
+    E_{x,y}\left[ \bar{h}(x) - y)^2\right]\\
+    &amp;= 
+    E_{x,D}\left[(h_D(x) - \bar{h}(x))^2\right] +
+    E_{x,y}\left[ \bar{h}(x) - y)^2\right]\\
+    &amp;= 
+    E_{x,D}\left[(h_D(x) - \bar{h}(x))^2\right] +
+    \text{EQ 3}\\
+    &amp;= 
+    E_{x,D}\left[(h_D(x) - \bar{h}(x))^2\right] +
+    E_x\left[(\bar{h}(x) - \bar{y}(x))^2\right] +
+    E_{x,y}\left[(\bar{y}(x) - y)^2\right]\\
+    2E_{x,y,D}\left[ (h_D(x) - \bar{h}(x))(\bar{h}(x) - y)\right] 
+    &amp;= 2E_{x,y}\left[ E_D\left[(h_D(x) - \bar{h}(x))\right]  (\bar{h}(x) - y) \right] &amp; \text{EQ 2}\\
+    &amp;= 2E_{x,y}\left[ (E_D\left[ h_D(x) \right] - \bar{h}(x))  (\bar{h}(x) - y) \right]\\
+    &amp;= 2E_{x,y}\left[ (\bar{h}(x) - \bar{h}(x))  (\bar{h}(x) - y) \right]\\
+    &amp;= 2E_{x,y}\left[ 0 (\bar{h}(x) - y) \right]\\
+    &amp;= 0\\
+    E_{x,y}\left[ (\bar{h}(x) - y)^2\right] &amp;=  
+    E_{x,y}\left[ (\bar{h}(x) + \bar{y}(x) - \bar{y}(x) - y)^2\right] &amp; \text{EQ 3}\\  
+    &amp;=
+    E_{x,y}\left[ ((\bar{h}(x) - \bar{y}(x)) + (\bar{y}(x) - y))^2\right]\\  
+    &amp;= 
+    E_{x,y}\left[ 
+        (\bar{h}(x) - \bar{y}(x))^2 + 
+        2(\bar{h}(x) - \bar{y}(x))(\bar{y}(x) - y) +
+        (\bar{y}(x) - y)^2
+    \right]\\  
+    &amp;=
+    E_x\left[(\bar{h}(x) - \bar{y}(x))^2\right] +
+    2E_{x,y}\left[(\bar{h}(x) - \bar{y}(x))(\bar{y}(x) - y)\right] +
+    E_{x,y}\left[(\bar{y}(x) - y)^2\right]\\
+    &amp;=
+    E_x\left[(\bar{h}(x) - \bar{y}(x))^2\right] +
+    \text{EQ 4} +
+    E_{x,y}\left[(\bar{y}(x) - y)^2\right]\\
+    &amp;=
+    E_x\left[(\bar{h}(x) - \bar{y}(x))^2\right] +
+    E_{x,y}\left[(\bar{y}(x) - y)^2\right]\\
+    2E_{x,y} \left[ (\bar{h}(x) - \bar{y}(x)) (\bar{y}(x) - y)  \right] &amp;=
+    2E_{x} \left[ (\bar{h}(x) - \bar{y}(x)) E_{y|x}\left[ (\bar{y}(x) - y) \right]\right] &amp;\text{EQ 4}\\
+    &amp;=
+    2E_{x} \left[ (\bar{h}(x) - \bar{y}(x)) (\bar{y}(x) - E_{y|x}\left[ y\right])\right] \\
+    &amp;=
+    2E_{x} \left[ (\bar{h}(x) - \bar{y}(x)) (\bar{y}(x) - \bar{y}(x))\right] \\
+    &amp;=
+    2E_{x} \left[ (\bar{h}(x) - \bar{y}(x)) 0\right] \\
+    &amp;= 0
+    \\
+\end{aligned}
+\]</div>
+<h3>Validation</h3>
+<p>In order to validate a model's performance, it must be tested on a data set different than the one used to train the model. 
+Otherwise, the model's performance may be somewhat deceptive.
+Just because a model performs well on training data that does not mean that it will perform well on previously unseen data.
+This may occur if the model has overfit on the training data.</p>
+<p>A popular way to test a model's performance, with some assurance that the model is not overfitting to training data is <span class="arithmatex">\(K\)</span>-fold cross validation.
+<span class="arithmatex">\(K\)</span>-fold cross validation is a process that involves splitting an available data set into <span class="arithmatex">\(K\)</span> parts, using one part to test and the remaining parts to train. 
+The model can then be tested <span class="arithmatex">\(K\)</span> times, by shifting the split that is used as a testing split.
+The final model testing output is then the average taken across <span class="arithmatex">\(K\)</span> tests.
+The diagram below shows how training and testing would work on a data set using <span class="arithmatex">\(4\)</span>-fold validation.</p>
+<p><img alt="png" src="../../images/blog/modelselectionandvalidation_20_0.png" /></p>
+<h3>Resources</h3>
+<ul>
+<li>Bishop, Christopher M. <em>Pattern Recognition and Machine Learning</em>. Springer, 2006.</li>
+<li>Hastie, Trevor, et al. <em>The Elements of Statistical Learning: Data Mining, Inference, and Prediction</em>. Springer, 2009.</li>
+<li>Weinberger, Kilian. <em>Lecture 12: Bias-Variance Tradeoff</em>. Machine Learning for Intelligent Systems. 2017. https://www.cs.cornell.edu/courses/cs4780/2018fa/lectures/lecturenote12.html. Accessed 27 Apr. 2021.</li>
+</ul>
+    <script>
+      window.addEventListener('load', () => {
+        document.querySelectorAll('.arithmatex').forEach(el => {
+          const parentWidth = el.parentElement.clientWidth;
+          if (el.scrollWidth > parentWidth) {
+            const scale = parentWidth / (el.scrollWidth * 1.05);
+            el.style.transform = `scale(${scale})`;
+            el.style.transformOrigin = 'left center';
+            el.style.display = 'inline-block';
+            el.style.width = `${parentWidth}px`;
+          }
+        });
+      });
+    </script>
+</body>
+</html>

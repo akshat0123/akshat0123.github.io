@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Logistic Regression</title>
+    <link rel="stylesheet" href="../../css/blogpage.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    <script>
+        window.MathJax = {
+            tex: {
+              inlineMath: [['\\(', '\\)']],
+              displayMath: [['\\[', '\\]']],
+              processEscapes: true,
+              processEnvironments: true
+            },
+            options: {
+              ignoreHtmlClass: '.*',
+              processHtmlClass: 'arithmatex'
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <a href="/blog.html">Blog</a>
+    <h1>Logistic Regression</h1>
+<h3>Introduction</h3>
+<p>Logistic regression is a parametric classification method that is used to estimate binary class output given real-valued input vectors. 
+In this post, cross entropy loss is used as the loss function and gradient descent (or batched gradient descent) is used to learn parameters.</p>
+<p>The computation graph below shows how logistic regression works. 
+The dot product of each input, a vector <span class="arithmatex">\(\vec{x}\)</span> of size <span class="arithmatex">\(D\)</span>, and weight vector <span class="arithmatex">\(\vec{w}\)</span> transposed is taken, resulting in <span class="arithmatex">\(z\)</span>.
+<span class="arithmatex">\(z\)</span> is put through the sigmoid function, and the loss is calculated using the mean squared error on label <span class="arithmatex">\(y\)</span> and <span class="arithmatex">\(\sigma(z)\)</span>.</p>
+<p>The bias term <span class="arithmatex">\(\beta\)</span> is ignored for the purposes of this post, but can easily be appended to weight vector <span class="arithmatex">\(\vec{w}\)</span> after appending a <span class="arithmatex">\(1\)</span> to an input vector <span class="arithmatex">\(\vec{x}\)</span>.</p>
+<p><img alt="png" src="../../images/blog/logisticregression_3_0.png" /></p>
+<h3>Learning</h3>
+<p>Given a data set <span class="arithmatex">\(X\)</span> of size <span class="arithmatex">\(N\)</span> with <span class="arithmatex">\(D\)</span> dimensions, parameters <span class="arithmatex">\(w\)</span> must be learned that minimize our loss function <span class="arithmatex">\(L_{CE}(y, \hat{y})\)</span>.
+The weight vector is learned using gradient descent.
+The derivation for term <span class="arithmatex">\(\frac{\partial L}{\partial w}\)</span> in the weight update is displayed in the derivations section of this post.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \sigma(z) &amp;= \frac{1}{1 + e^{-z}} &amp; \text{[Logistic function]}\\
+    L_{\text{CE}}(y, \hat{y}) &amp;= -\left[ y\log \hat{y} + (1-y)\log(1-\hat{y}) \right]&amp; \text{[Cross entropy loss]}\\
+    w_i &amp;= w_i - \alpha \frac{\partial L}{\partial w_i} &amp; \text{[Weight update]}\\
+    &amp;= w_i - \alpha \left[x_i (\sigma(z) - y)\right] &amp;\\
+    w_i &amp;= w_i - \alpha \frac{1}{B}\sum^B_{j=1}x_{j,i}(\sigma(z)-y) &amp; \text{[Batch weight update]}\\
+\end{aligned}
+\]</div>
+<h3>Code</h3>
+<p>Code for a logistic regression classifier is shown in the block below</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">trange</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">ErrorRate</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">yhat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate error rate (1 - accuracy)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y: true labels</span>
+<span class="sd">        yhat: predicted labels</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        error rate</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span> <span class="o">!=</span> <span class="n">yhat</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">())</span> <span class="o">/</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LogisticRegressionClassifier</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate logistic regression classifier</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calcError</span> <span class="o">=</span> <span class="n">ErrorRate</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">batch</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Fit logistic regression classifier to dataset</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+<span class="sd">            y: input labels</span>
+<span class="sd">            alpha: alpha parameter for weight update</span>
+<span class="sd">            epochs: number of epochs to train</span>
+<span class="sd">            batch: size of batches for training</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="n">epochs</span> <span class="o">=</span> <span class="n">trange</span><span class="p">(</span><span class="n">epochs</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Error&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">epochs</span><span class="p">:</span>
+
+            <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">batch</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="n">batch</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">probs</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span>
+                <span class="n">dw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calcGradient</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">hx</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">-</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">dw</span><span class="p">)</span>
+                <span class="n">start</span> <span class="o">+=</span> <span class="n">batch</span>
+                <span class="n">end</span> <span class="o">+=</span> <span class="n">batch</span>
+
+            <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calcError</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">hx</span><span class="p">)</span>
+            <span class="n">epochs</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s1">&#39;Err: </span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">error</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">probs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Determine probability of label being 1</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            probability for each member of input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">hx</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,kj-&gt;i&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">)))[:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">hx</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Predict labels</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            labels for each member of input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">probs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">hx</span> <span class="o">=</span> <span class="p">(</span><span class="n">hx</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">hx</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calcGradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">hx</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculate weight gradient</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input data</span>
+<span class="sd">            y: input labels</span>
+<span class="sd">            hx: predicted probabilities</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tensor of gradient values the same size as weights</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="n">hx</span> <span class="o">-</span> <span class="n">y</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</code></pre></div>
+
+<h3>Derivations</h3>
+<p>Derivative of loss function <span class="arithmatex">\(L\)</span> with respect to sigmoid output <span class="arithmatex">\(a=\sigma(z)\)</span>:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial L}{\partial a} &amp;= \frac{\partial}{\partial a} - \left[y\log a + (1-y) \log (1-a)\right]\\
+    &amp;= - \left[
+        y\frac{\partial}{\partial a}\log a +
+        (1-y)\frac{\partial}{\partial a}\log (1-a)
+    \right]\\
+    &amp;= - \left[
+        \frac{y}{a}\frac{\partial}{\partial a}a +
+        \frac{(1-y)}{(1-a)}\frac{\partial}{\partial a}(1-a)
+    \right]\\
+    &amp;= -\left[\frac{y}{a} - \frac{(1-y)}{(1-a)}\right]
+\end{aligned}
+\]</div>
+<p>Derivative of sigmoid function <span class="arithmatex">\(\sigma(z)\)</span> with respect to sigmoid input <span class="arithmatex">\(z\)</span>:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial \sigma(z)}{\partial z} &amp;= \frac{\partial}{\partial z}\frac{1}{1 + e^{-z}}\\
+    &amp;= \frac{\partial}{\partial z}(1 + e^{-z})^{-1}\\
+    &amp;= -(1 + e^{-z})^{-2}\frac{\partial}{\partial z}(1 + e^{-z})\\
+    &amp;= -(1 + e^{-z})^{-2}\frac{\partial}{\partial z}(e^{-z})\\
+    &amp;= \frac{-e^{-z}}{(1 + e^{-z})^{2}}\frac{\partial}{\partial z}(-z)\\
+    &amp;= \frac{e^{-z}}{(1 + e^{-z})^{2}}\\
+    &amp;= \frac{e^{-z}}{1 + e^{-z}} \frac{1}{1 + e^{-z}}\\
+    &amp;= \left(
+        \frac{1 + e^{-z}}{1 + e^{-z}} -
+        \frac{1}{1 + e^{-z}} 
+    \right)\frac{1}{(1 + e^{-z})}\\
+    &amp;= (1 - \sigma(z))\sigma(z)\\
+\end{aligned}
+\]</div>
+<p>Derivative of linear combination <span class="arithmatex">\(z\)</span> with respect to weight <span class="arithmatex">\(w_i\)</span>:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial z}{\partial w_i} &amp;= \frac{\partial}{\partial w_i} \sum^D_{j=1}w_j \times x_j\\
+    &amp;= x_i
+\end{aligned}
+\]</div>
+<p>Derivative of loss function <span class="arithmatex">\(L\)</span> with respect to weight <span class="arithmatex">\(w_i\)</span>:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial L}{\partial w_i} &amp;= 
+    \frac{\partial z}{\partial w_i}
+    \frac{\partial \sigma(z)}{\partial z}
+    \frac{\partial L}{\partial \sigma(z)}\\ 
+    &amp;= x_i \left[(1-\sigma(z))\sigma(z)\right]\left[\frac{1-y}{1-\sigma(z)}-\frac{y}{\sigma(z)}\right]\\
+    &amp;= x_i [(1-y)\sigma(z) - (1-\sigma(z))y] \\
+    &amp;= x_i [\sigma(z)-y\sigma(z) - y + y\sigma(z)] \\
+    &amp;= x_i [\sigma(z)- y] \\
+\end{aligned}
+\]</div>
+<h3>Resources</h3>
+<ul>
+<li>Jurafsky, Daniel, and James H. Martin. Speech and Language Processing: An Introduction to Natural Language Processing, Computational Linguistics, and Speech Recognition. Pearson, 2020.</li>
+<li>Russell, Stuart J., et al. Artificial Intelligence: A Modern Approach. 3rd ed, Prentice Hall, 2010.</li>
+</ul>
+    <script>
+      window.addEventListener('load', () => {
+        document.querySelectorAll('.arithmatex').forEach(el => {
+          const parentWidth = el.parentElement.clientWidth;
+          if (el.scrollWidth > parentWidth) {
+            const scale = parentWidth / (el.scrollWidth * 1.05);
+            el.style.transform = `scale(${scale})`;
+            el.style.transformOrigin = 'left center';
+            el.style.display = 'inline-block';
+            el.style.width = `${parentWidth}px`;
+          }
+        });
+      });
+    </script>
+</body>
+</html>

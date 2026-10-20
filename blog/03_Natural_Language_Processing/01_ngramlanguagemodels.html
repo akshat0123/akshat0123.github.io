@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>N-Gram Language Models</title>
+    <link rel="stylesheet" href="../../css/blogpage.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    <script>
+        window.MathJax = {
+            tex: {
+              inlineMath: [['\\(', '\\)']],
+              displayMath: [['\\[', '\\]']],
+              processEscapes: true,
+              processEnvironments: true
+            },
+            options: {
+              ignoreHtmlClass: '.*',
+              processHtmlClass: 'arithmatex'
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <a href="/blog.html">Blog</a>
+    <h1>N-Gram Language Models</h1>
+<h3>Introduction</h3>
+<p>A language model predicts a probability distribution of language.
+A simple and popular modeling approach to language modeling is the N-gram language model.
+The N-gram language model will be described in this post, in the context of two possible applications: text generation as well as text classification (spam detection).
+This post will only be covering N-gram language models at the word level.
+It should be noted that N-gram models can also be developed at the character or syllable level.</p>
+<h3>N-gram Language Modeling</h3>
+<p>An N-gram language model is a model that predicts the probability of a sequence based on the product of each word and the preceding words in the sequence to that word. 
+The N-gram language model relies on the Markov assumption, which is that a current state only depends upon a limited number of prior states.</p>
+<p>The equations below display how to calculate the probability of a sequence given a corpus, as well as how to calculate the probability of an N-gram sequence ending in a particular word given a corpus.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    C(s) &amp;\rightarrow \text{ Count of sequence in corpus}\\
+    N &amp;\rightarrow \text{ Size of sequence}\\
+    n &amp;\rightarrow \text{ Size of Ngram}\\
+    P(w_{1:N}) &amp;= \prod^N_{i=1} P(w_i|w_{i-n+1:i-1})\\
+    &amp;\propto \sum^N_{i=1} \log P(w_i|w_{i-n+1:i-1})\\
+    P(w_i|w_{i-n+1:i-1}) &amp;= \frac{C(w_{i-n+1:i-1}, w_i)}{C(w_{i-n+1:i-1})}\\ 
+\end{aligned}
+\]</div>
+<p>The above approach to calculating sequence probabilities will have issues when dealing with words that have never been seen before. 
+A general approach to dealing with unseen words is to assign some small probability to unseen events.
+This approach is called smoothing. 
+One particular kind of smoothing, called Laplace smoothing assigns a constant to all ngram counts.
+The sequence probability calculation adjusted using Laplace smoothing is shown below:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    V &amp;\rightarrow \text{ Size of vocabulary}\\
+    P(w_i|w_{i-n+1:i-1}) &amp;= \frac{1 + C(w_{i-n+1:i-1}, w_i)}{V + C(w_{i-n+1:i-1})}\\ 
+\end{aligned}
+\]</div>
+<p>Another form of smoothing, known as Good-Turing smoothing, takes into account the frequency of words with one less number of occurrences when calculating a probability for a word.
+The sequence probability calculation adjusted using Good-Turing smoothing is shown below:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    N_r &amp;\rightarrow \text{ Count of N-grams that appear $r$ times}\\
+    c_*(w_i) &amp;= (C(w_{i-n+1:i-1}, w_i) + 1) \frac{N_{C(w_{i-n+1:i-1}, w_i) + 1}}{N_{C(w_{i-n+1:i-1}, w_i)}} \\
+    P(w_i|w_{i-n+1:i-1}) &amp;= \frac{c_*(w_i)}{\sum^{\infty}_{r=1} N_r}\\
+\end{aligned}
+\]</div>
+<p>Perplexity is an internal measurment used to measure the power of a language model.
+The perplexity of a test set given a language model is the inverse probability of the test set, scaled by the number of words.
+The lower the perplexity, the higher the conditional probability of the word sequence.
+The perplexity measure equation is displayed below:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+p(W) &amp;= \sqrt[N]{\prod^{N}_{i=1} \frac{1}{P(w_i|w_{i-n+1:i-1})} }\\
+&amp;= \left[\prod^{N}_{i=1} \frac{1}{P(w_i|w_{i-n+1:i-1})}\right]^{\frac{1}{N}}\\
+&amp;= \left[\prod^{N}_{i=1} P(w_i|w_{i-n+1:i-1})\right]^{-\frac{1}{N}}\\
+&amp;= e^{\ln  \left[\prod^{N}_{i=1} P(w_i|w_{i-n+1:i-1})\right]^{-\frac{1}{N}}}\\
+&amp;= e^{ -\frac{1}{N} \ln  \left[\prod^{N}_{i=1} P(w_i|w_{i-n+1:i-1})\right]}\\
+&amp;= e^{ -\frac{1}{N} \left[\sum^{N}_{i=1} \ln P(w_i|w_{i-n+1:i-1})\right]}\\
+&amp;= \exp\left(-\frac{1}{N} \sum^{N}_{i=1} \ln P(w_i|w_{i-n+1:i-1})\right)\\
+\end{aligned}
+\]</div>
+<h3>Code</h3>
+<p>Code for an NGram language model that uses Good-Turing smoothing when calculating probabilities is displayed below: </p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">NGramLanguageModel</span><span class="p">:</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pad</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;&lt;PAD&gt;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate NGram language model</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n: size of NGrams</span>
+<span class="sd">            pad: string to use as padding</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">totals</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pad</span> <span class="o">=</span> <span class="n">pad</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">n</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Parse string and turn it into list of tokens, removing all</span>
+<span class="sd">            non-alphanumeric characters and splitting by space</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            line: string to be parsed</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list of parsed tokens</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;[^a-z\s]&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">t</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">tokens</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Add line to language model</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            line: string to be added to language model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">seq</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pad</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)]</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="c1"># Split list of tokens into NGrams and add to model</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)):</span>
+            <span class="n">seq</span> <span class="o">=</span> <span class="n">seq</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="p">[</span><span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>                
+            <span class="n">tseq</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">seq</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">tseq</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="n">tseq</span><span class="p">]:</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="n">tseq</span><span class="p">][</span><span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="k">else</span><span class="p">:</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="n">tseq</span><span class="p">][</span><span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="n">tseq</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="mi">1</span> <span class="p">}</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calcSmoothingCounts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; After all lines are added, this method can be called to generate</span>
+<span class="sd">            counts required for Good-Turing smoothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">totalCounts</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counts</span> <span class="o">=</span> <span class="p">{}</span> 
+
+        <span class="k">for</span> <span class="n">ngram</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="n">ngram</span><span class="p">]:</span>
+                <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="n">ngram</span><span class="p">][</span><span class="n">token</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span> <span class="k">else</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">totalCounts</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculate probability of sequence being produced by language model,</span>
+<span class="sd">            smoothed using Good-Turing smoothing</span>
+
+<span class="sd">        Args: </span>
+<span class="sd">            sequence: sequence as a list of tokens</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            probability of language model producing sequence                </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">tseq</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">sequence</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">tseq</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span> <span class="ow">and</span> \
+           <span class="n">sequence</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="n">tseq</span><span class="p">]:</span>
+            <span class="n">c</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="n">tseq</span><span class="p">][</span><span class="n">sequence</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>           
+
+        <span class="n">ncn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">c</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">c</span><span class="o">+</span><span class="mi">1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">ncd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">ncn</span> <span class="o">/</span> <span class="n">ncd</span> <span class="k">if</span> <span class="n">ncd</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+
+        <span class="n">cstar</span> <span class="o">=</span> <span class="p">(</span><span class="n">c</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">n</span>
+        <span class="k">return</span> <span class="n">cstar</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">totalCounts</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">perplexity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculate preplexity of dataset with regard to model</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dataset: list of string sequences in testing dataset</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            perplexity score                </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">perp</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">N</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">dataset</span><span class="p">:</span>
+
+            <span class="n">seq</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pad</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)]</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="n">N</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)):</span>
+                <span class="n">seq</span> <span class="o">=</span> <span class="n">seq</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="p">[</span><span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>                
+                <span class="n">prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
+                <span class="n">perp</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">prob</span><span class="p">)</span> <span class="k">if</span> <span class="n">prob</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+
+        <span class="n">perp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="n">N</span><span class="p">)</span> <span class="o">*</span> <span class="n">perp</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">perp</span>
+</code></pre></div>
+
+<h3>Resources</h3>
+<ul>
+<li>Jurafsky, Daniel, and James H. Martin. <em>Speech and Language Processing: An Introduction to Natural Language Processing, Computational Linguistics, and Speech Recognition</em>. Pearson, 2020.</li>
+<li>Russell, Stuart J., et al. <em>Artificial Intelligence: A Modern Approach</em>. 3rd ed, Prentice Hall, 2010.</li>
+</ul>
+    <script>
+      window.addEventListener('load', () => {
+        document.querySelectorAll('.arithmatex').forEach(el => {
+          const parentWidth = el.parentElement.clientWidth;
+          if (el.scrollWidth > parentWidth) {
+            const scale = parentWidth / (el.scrollWidth * 1.05);
+            el.style.transform = `scale(${scale})`;
+            el.style.transformOrigin = 'left center';
+            el.style.display = 'inline-block';
+            el.style.width = `${parentWidth}px`;
+          }
+        });
+      });
+    </script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transformers</title>
+    <link rel="stylesheet" href="../../css/blogpage.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    <script>
+        window.MathJax = {
+            tex: {
+              inlineMath: [['\\(', '\\)']],
+              displayMath: [['\\[', '\\]']],
+              processEscapes: true,
+              processEnvironments: true
+            },
+            options: {
+              ignoreHtmlClass: '.*',
+              processHtmlClass: 'arithmatex'
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <a href="/blog.html">Blog</a>
+    <h1>Transformers</h1>
+<h2>Introduction</h2>
+<p>A transformer is a neural network architecture for sequence processing that is based on the self-attention mechanism.
+The model was introduced in the paper <strong>Attention is All You Need</strong> in 2017 with experiments on machine translation and constituency parsing in English. 
+Transformers enable more efficient parallel processing for sequential problems when compared to prior recurrent-connection based approaches.
+Compared to prior models, transformers are very effective at processing long-term dependencies in sequences.</p>
+<p>In this post I will be discussing self-attention, multi-headed self attention, the transformer architecture, as well as some additional mechanisms commonly seen in transformer architectures, including residual connections, layer normalization, and positional embeddings.
+For more information on deep learning in general, background on language modeling, or word embeddings it may help to look at my previous posts titled <em>Classification and Regression with Neural Networks</em>, <em>N-Gram Language Models</em>, and <em>Word Embeddings</em>.
+In this post I do not explicitly go over how the learning process works.
+If you are interested, the previously mentioned posts in conjunction with the provided computation graphs should be enough to get you started on how these models learn explicitly using backpropagation.</p>
+<h2>Self-Attention</h2>
+<p>Attention is an approach to sequence modeling that attempts to determine the relative importance of every object in an input sequence for a given position in an output sequence.
+In simple terms, when determining the label at a particular position of an output sequence, attention determines which of the members of the input sequence to "pay attention" to most.
+In the following example, given the input, "In the morning I can be grumpy if I don't drink [blank]", in determining what the blank token is, some words may matter more than others.
+Given a vocabulary of the following options: "coffee", "juice", and "eggs", the input tokens "morning", "drink", and "grumpy" are clues that the resulting blank should more likely be "coffee" than "juice" or "eggs", as displayed in the diagram below.</p>
+<p><img alt="png" src="../../images/blog/transformers_5_0.png" /></p>
+<p>Attention is a mechanism that takes in a query and a set of key value pairs as input and produces a weighted sum of values as outputs, where the weight of each value is determined by a comparison between the query and the respective key for the value. 
+In self-attention, given an input sequence <span class="arithmatex">\(x_1, ..., x_N\)</span>, each member of the sequence plays the role of query and key, resulting in comparisons between every member of the sequence with every other member of the sequence.
+The calculation of a single self-attention output is displayed below:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    y_i &amp;= 
+    \sum_j \underset{\forall j}{softmax}\left(\frac{q_i \cdot k_j}{\sqrt{d_k}}\right)v_j \\
+    q_i &amp;= W^Q x_i\\
+    k_i &amp;= W^K x_i\\
+    v_i &amp;= W^V x_i\\
+\end{aligned}
+\]</div>
+<p>Query, key, and value vectors are calculated using input vectors <span class="arithmatex">\(x_1, ..., x_N\)</span> and weight vectors <span class="arithmatex">\(W^Q, W^K, W^V\)</span>.
+The query and key vectors <span class="arithmatex">\(q_i\)</span> and <span class="arithmatex">\(k_j\)</span> are compared using a dot product, and scaled by the square root of the dimension of <span class="arithmatex">\(q\)</span> and <span class="arithmatex">\(k\)</span> vectors <span class="arithmatex">\(d_k\)</span>. 
+The softmax function is performed over all comparisons of <span class="arithmatex">\(q_i\)</span> and <span class="arithmatex">\(k_j \forall j\)</span>.
+The comparison is then used as a weight for the value vector <span class="arithmatex">\(v_j\)</span> and the weighted values are added to produce output <span class="arithmatex">\(y_i\)</span>.
+The computation graph below displays the first self-attention outputs assuming a sequence of length 3:</p>
+<p><img alt="png" src="../../images/blog/transformers_7_0.png" /></p>
+<p>The computation graph above displays the calculations required for a single <span class="arithmatex">\(y\)</span> output given input sequence <span class="arithmatex">\(\{x_1, x_2, x_3\}\)</span>.
+Self-attention computations can be batched such that all <span class="arithmatex">\(y\)</span> outputs can be calculated in parallel by using matrices <span class="arithmatex">\(Q, K, V\)</span> rather than single <span class="arithmatex">\(q, k, v\)</span> vectors.
+The calculation of self attention for all inputs <span class="arithmatex">\(X\)</span> is shown below:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    Y &amp;= softmax\left(\frac{QK^T}{\sqrt{d_k}}\right)V\\
+    Q &amp;= XW^Q \\
+    K &amp;= XW^K \\
+    V &amp;= XW^V \\
+\end{aligned}
+\]</div>
+<p>Using this approach computation can be done very efficiently in parallel for all input sequences using common mathematical and/or deep learning libraries such as numpy or pytorch. 
+Weight matrices <span class="arithmatex">\(W^Q, W^K, W^V\)</span> are learned using gradient-based approaches.
+The computation graph below displays the batched version of self-attention.</p>
+<p><img alt="png" src="../../images/blog/transformers_9_0.png" /></p>
+<p>In the formulation shown, words in a sequence <span class="arithmatex">\(X\)</span> are all compared to each other once.
+However, often words can have multiple different relationships with each other. 
+In order to capture these relationships, in training we often use what is called multi-headed attention. 
+Multi-headed attention involves taking multiple query and key values for each term in the sequence and performing self-attention on each layer, or each setting of query and key values.
+A computation graph for a multi-headed attention layer is shown below, with 3 heads.
+The outputs of each head <span class="arithmatex">\({\alpha_1, \alpha_2, \alpha_3}\)</span> are concatenated at the end and multiplied with a fourth weight matrix (<span class="arithmatex">\(W^O\)</span>) to produce output <span class="arithmatex">\(Y\)</span>.</p>
+<p><img alt="png" src="../../images/blog/transformers_11_0.png" /></p>
+<h2>Architecture</h2>
+<p>In the original transformer architecture, self-attention layers are placed into larger blocks called encoder and decoder blocks. 
+Not all transformer models consist of both encoders, decoders, or either, but they are common enough that it is worth discussing what they are and how self-attention plays a role in their functionality with respect to transformers.</p>
+<p>In <strong>Attention is All you need</strong>, the primary (not the only!) difference between the encoder and the decoder blocks is that the decoder block is autoregressive and the encoder block is not.
+This means that when an encoder block is given a sequence, all members of the sequence are compared with each other. 
+However, in the case of the decoder, each member of the input sequence is only compared with the members of the sequence that appear before it.
+Conceptually, encoders are used to create dense representations of provided inputs, while decoders take encoded representations as input and produce outputs in the required format.</p>
+<h2>Transformer Block</h2>
+<p>In addition to multi-headed self-attention, transformer blocks also contain a feed-forward layer, residual connections, as well as layer normalization. 
+Transformer models generally also use positional embeddings to model word order.
+An example of an entire transformer block is shown in the diagram below.</p>
+<p>Residual connections allow information to skip layers in order to preserve knowledge from lower layers. 
+They are implemented in transformer blocks by simply adding the output of a lower layer to the output of the current layer before proceeding to the next layer.
+Layer normalization keeps layer outputs within a particular range in order to improve gradient-based learning.
+Layer normalization and residual connections are shown in the diagram of the transofmer block below. </p>
+<p>Transformers explicitly model word order using positional embeddings, which are vectors of the same size as model input, with one for each position in the window size of the model input.
+They are added to the input embeddings and can be learned during the training of the model</p>
+<p><img alt="png" src="../../images/blog/transformers_16_0.png" /></p>
+<h2>Code</h2>
+<p>The code for a multi-headed transformer decoder model is shown in the block below</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModuleList</span><span class="p">,</span> <span class="n">Identity</span><span class="p">,</span> <span class="n">Dropout</span><span class="p">,</span> <span class="n">Softmax</span><span class="p">,</span> <span class="n">Linear</span><span class="p">,</span> <span class="n">Module</span><span class="p">,</span> <span class="n">GELU</span> 
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">einsum</span><span class="p">,</span> <span class="n">square</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">ones</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">tril</span><span class="p">,</span> <span class="n">cat</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="nb">sum</span> <span class="k">as</span> <span class="n">sum_</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TransformerDecoder</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">window_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">d_k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_v</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">hidden</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_blocks</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialized tranformer-based decoder</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vocab_size: input vocabulary size</span>
+<span class="sd">            embedding_size: embedding size</span>
+<span class="sd">            window_size: sequence window size</span>
+<span class="sd">            d_k: self-attention query, key dimension size</span>
+<span class="sd">            d_v: self-attention value size </span>
+<span class="sd">            n_heads: number of self-attention heads </span>
+<span class="sd">            hidden: number of hidden units in feed forward layers</span>
+<span class="sd">            n_blocks: number of transformer blocks</span>
+<span class="sd">            dropout: dropout amount</span>
+<span class="sd">            device: device to put model on</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pids</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">window_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span> <span class="o">=</span> <span class="n">Embedding</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">Embedding</span><span class="p">(</span><span class="n">window_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span> <span class="o">=</span> <span class="n">ModuleList</span><span class="p">([</span>
+            <span class="n">TransformerBlock</span><span class="p">(</span><span class="n">embedding_size</span><span class="p">,</span> <span class="n">d_k</span><span class="p">,</span> <span class="n">d_v</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">,</span> <span class="n">hidden</span><span class="p">,</span> <span class="n">dropout</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span> \
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">)</span>
+        <span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="n">embedding_size</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> 
+        <span class="n">X</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pids</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">block</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">(</span><span class="n">X</span><span class="p">)[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TransformerBlock</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">,</span> <span class="n">d_k</span><span class="p">,</span> <span class="n">d_v</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">,</span> <span class="n">hidden</span><span class="p">,</span> <span class="n">dropout</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialized tranformer block</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d_in: input size</span>
+<span class="sd">            d_k: self-attention query, key dimension size</span>
+<span class="sd">            d_v: self-attention value size </span>
+<span class="sd">            n_heads: number of self-attention heads </span>
+<span class="sd">            hidden: number of hidden units in feed forward layers</span>
+<span class="sd">            dropout: dropout amount</span>
+<span class="sd">            device: device to put model on</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attention</span> <span class="o">=</span> <span class="n">MultiHeadAttentionLayer</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_k</span><span class="p">,</span> <span class="n">d_v</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer_norm</span> <span class="o">=</span> <span class="n">LayerNorm</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ffl1</span> <span class="o">=</span> <span class="n">PositionWiseFFL</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">hidden</span><span class="p">,</span> <span class="n">GELU</span><span class="p">(),</span> <span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ffl2</span> <span class="o">=</span> <span class="n">PositionWiseFFL</span><span class="p">(</span><span class="n">hidden</span><span class="p">,</span> <span class="n">d_in</span><span class="p">,</span> <span class="n">Identity</span><span class="p">(),</span> <span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d1</span> <span class="o">=</span> <span class="n">Dropout</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="n">dropout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d2</span> <span class="o">=</span> <span class="n">Dropout</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="n">dropout</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_norm</span><span class="p">(</span><span class="n">X</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">d1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attention</span><span class="p">(</span><span class="n">X</span><span class="p">)))</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_norm</span><span class="p">(</span><span class="n">Z</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">d2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ffl2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ffl1</span><span class="p">(</span><span class="n">Z</span><span class="p">))))</span>
+        <span class="k">return</span> <span class="n">Y</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Embedding</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialized embedding encoder </span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vocab_size: input vocabulary size</span>
+<span class="sd">            embedding_size: embedding size</span>
+<span class="sd">            device: device to put model on</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MultiHeadAttentionLayer</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">,</span> <span class="n">d_k</span><span class="p">,</span> <span class="n">d_v</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialized multi-headed attention layer</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d_in: input size</span>
+<span class="sd">            d_k: self-attention query, key dimension size</span>
+<span class="sd">            d_v: self-attention value size </span>
+<span class="sd">            n_heads: number of self-attention heads </span>
+<span class="sd">            device: device to put model on</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heads</span> <span class="o">=</span> <span class="n">ModuleList</span><span class="p">([</span>
+            <span class="n">SelfAttentionLayer</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_k</span><span class="p">,</span> <span class="n">d_v</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_heads</span><span class="p">)</span>
+        <span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="n">n_heads</span> <span class="o">*</span> <span class="n">d_v</span><span class="p">,</span> <span class="n">d_in</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">cat</span><span class="p">([</span><span class="n">head</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="k">for</span> <span class="n">head</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">heads</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SelfAttentionLayer</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">,</span> <span class="n">d_k</span><span class="p">,</span> <span class="n">d_v</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialized self attention layer</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d_in: input size</span>
+<span class="sd">            d_k: self-attention query, key dimension size</span>
+<span class="sd">            d_v: self-attention value size </span>
+<span class="sd">            device: device to put model on</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wq</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_k</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wk</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_k</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wv</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_v</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sqrt_dk</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">Tensor</span><span class="p">([</span><span class="n">d_k</span><span class="p">]))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">softmax</span> <span class="o">=</span> <span class="n">Softmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wq</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">wk</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">wv</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">QK</span> <span class="o">=</span> <span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ijk,ilk-&gt;ijl&#39;</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrt_dk</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">tril</span><span class="p">(</span><span class="n">ones</span><span class="p">(</span><span class="n">QK</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">sQK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">QK</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="n">mask</span><span class="o">==</span><span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;-inf&#39;</span><span class="p">)))</span>
+        <span class="n">sA</span> <span class="o">=</span> <span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ijk,ikl-&gt;ijl&#39;</span><span class="p">,</span> <span class="n">sQK</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sA</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LayerNorm</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Layer normalization module</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="n">mean</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">square</span><span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">sum_</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">sigma</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span> <span class="o">/</span> <span class="n">sigma</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PositionWiseFFL</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">,</span> <span class="n">activation</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialized position-wise feed forward neural network layer </span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d_in: input size</span>
+<span class="sd">            d_out: output size</span>
+<span class="sd">            activation: activation function</span>
+<span class="sd">            device: device to put model on</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">activation</span> <span class="o">=</span> <span class="n">activation</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">cat</span><span class="p">([</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="p">:])[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+</code></pre></div>
+
+<h2>Resources</h2>
+<ul>
+<li>Alammar, Jay. “The Illustrated Transformer.” 2018. https://jalammar.github.io/illustrated-transformer/. Accessed 19 Mar. 2022.</li>
+<li>Jurafsky, D., Martin, J. Speech and Language Processing: An Introduction to Natural Language Processing, Computational Linguistics, and Speech Recognition. Pearson, 2020.</li>
+<li>Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A., Kaiser, L., Polosukhin, I. (2017). Attention is All you Need. In Advances in Neural Informationrocessing Systems (Vol 30). Curran Associates, Inc.</li>
+</ul>
+    <script>
+      window.addEventListener('load', () => {
+        document.querySelectorAll('.arithmatex').forEach(el => {
+          const parentWidth = el.parentElement.clientWidth;
+          if (el.scrollWidth > parentWidth) {
+            const scale = parentWidth / (el.scrollWidth * 1.05);
+            el.style.transform = `scale(${scale})`;
+            el.style.transformOrigin = 'left center';
+            el.style.display = 'inline-block';
+            el.style.width = `${parentWidth}px`;
+          }
+        });
+      });
+    </script>
+</body>
+</html>

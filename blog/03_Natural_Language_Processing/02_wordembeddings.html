@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Word Embeddings</title>
+    <link rel="stylesheet" href="../../css/blogpage.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    <script>
+        window.MathJax = {
+            tex: {
+              inlineMath: [['\\(', '\\)']],
+              displayMath: [['\\[', '\\]']],
+              processEscapes: true,
+              processEnvironments: true
+            },
+            options: {
+              ignoreHtmlClass: '.*',
+              processHtmlClass: 'arithmatex'
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <a href="/blog.html">Blog</a>
+    <h1>Word Embeddings</h1>
+<h3>Introduction</h3>
+<p>Word embeddings are a method of representation learning that seeks to turn words into vectors such that when a pair of vectors <span class="arithmatex">\(\vec{w}_1\)</span> and <span class="arithmatex">\(\vec{w}_2\)</span> are close to each other, the words that they represent are semantically similar, and when the vectors are far away, the corresponding words are semantically distant from each other. 
+Generally speaking, word embeddings are constructed by leveraging the distributional semantics hypothesis, which states that words that appear in similar contexts, or have similar distributions, are semantically similar.</p>
+<h3>Co-occurrence Vectors</h3>
+<p>Creating co-occurrence vectors for words in a corpus a simple way of representing words as vectors in a space that models semantic relationships between words.
+One way to create co-occurrence vectors is to create <span class="arithmatex">\(V\)</span> vectors of size <span class="arithmatex">\(V\)</span>, where <span class="arithmatex">\(V\)</span> is the total size of the vocabulary. 
+When two words, <span class="arithmatex">\(w_1\)</span> and <span class="arithmatex">\(w_2\)</span> are in the same document, the <span class="arithmatex">\(w_2\)</span> column for <span class="arithmatex">\(w_1\)</span> is incremented by 1, and the <span class="arithmatex">\(w_1\)</span> column for <span class="arithmatex">\(w_2\)</span> is incremented by 1. 
+In another approach, increments can be made when two words are within a preset window size of each other.</p>
+<p>In the example corpus shown below, there only four documents, and only the words immediately previous and immediately following a given word <span class="arithmatex">\(w\)</span> are considered when creating its co-occurrence embedding.
+There are a total of 7 words in the entire vocabulary, so there are 7 co-occurrence vectors (shown below), each of size 7.
+The row representing "likes" contains a 1 in the "Bob" column because the "Bob" appears next to "likes" in at least one document in the corpus.
+Similarly, the "likes" row also contains a 1 in the "pizza" and "wings" columns</p>
+<ol>
+<li>Bob likes pizza</li>
+<li>Bob likes wings</li>
+<li>Bob dislikes kale</li>
+<li>Bob dislikes lettuce</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Bob</th>
+<th>dislikes</th>
+<th>kale</th>
+<th>lettuce</th>
+<th>likes</th>
+<th>pizza</th>
+<th>wings</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bob</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>dislikes</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>kale</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>lettuce</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>likes</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>pizza</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>wings</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>Despite how simple this corpus and set of word embeddings is, there are still semantic relationships that can be learned.
+A simple and effective way to check similarity between words using embeddings is cosine similarity, which measures the cosine of the angle between the two embeddings, as shown below.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    csim(w_1, w_2) 
+    &amp;= 
+    \frac{
+        w_1 \cdot w_2
+    }{
+        ||w_1|| \times||w_2||
+    }
+    &amp;
+    [\text{Cosine Similarity}]\\
+    &amp;=
+    \frac{
+        \sum_{i=1} {w_1}_i \times {w_2}_i
+    }{
+        \sqrt{\sum_{i=1} {{w_1}_i}^2} \times \sqrt{\sum_{i=1} {{w_2}_i}^2}
+    }
+    \\
+\end{aligned}
+\]</div>
+<p>Given the example word embedding space defined above, "lettuce" and "kale" have a cosine similarity of 0.5, and "pizza" and "wings" have a cosine similarity of 0.5.
+However the pair "lettuce" and "wings", or pair "pizza" and "kale", both have cosine similarities of 0.
+This is because "lettuce" and "kale" both appear in context with "likes", and "pizza" and wings" both appear in context with "dislikes".
+Measuring semantic similarity using this approach is one way that word embeddings can be useful.</p>
+<h3>Word2Vec</h3>
+<p>Using co-occurrence vectors can be effective, but has several limitations.
+The most obvious limitation is the size of the embeddings (<span class="arithmatex">\(V\)</span>). 
+In addition, in most cases, the entries of vectors will be zero. 
+Word2Vec, an approach developed by Mikolov et al. in 2013 creates dense arbitrarily-sized word embeddings that generally work better than the sparsely populated co-occurrence vectors. </p>
+<p>At a high level, the word2vec approach learns a binary classifier that determines whether or not a pair of words might appear in the same context or not. 
+In the skip-gram negative sampling approach, a context is a window or sequence of words, and the classifier outputs the probability <span class="arithmatex">\(p(+|w, c)\)</span>, which is the probability that word <span class="arithmatex">\(c\)</span> might appear in the same context as word <span class="arithmatex">\(w\)</span>.
+Conversely, <span class="arithmatex">\(p(-|w, c)\)</span> is the probability that the word <span class="arithmatex">\(c\)</span> might not appear in the same context as word <span class="arithmatex">\(w\)</span>.
+The calculations for both of these probabilities are shown below:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \sigma(x) &amp;= \frac{1}{1 + e^{-x}} &amp; [\text{Sigmoid function}]\\
+    p(+|w, c) &amp;= \sigma(c \cdot w) &amp; [\text{Probability c is context word}]\\
+    p(-|w, c) &amp;= 1 - p(+|w, c) = \sigma(-c \cdot w) &amp; [\text{Probability c is not context word}]\\
+\end{aligned}
+\]</div>
+<p>The loss function for the word2vec model maximizes the probability <span class="arithmatex">\(p(+|w,c)\)</span> when words <span class="arithmatex">\(w\)</span> and <span class="arithmatex">\(c\)</span> do appear in the same window in a training data set.
+It simultaneously minimizes <span class="arithmatex">\(p(+|w,c)\)</span> when <span class="arithmatex">\(c\)</span> is randomly generated, and does not necessarily appear in the same documents as <span class="arithmatex">\(w\)</span>.
+The loss function and a computation graph for learning word2vec embeddings are shown below.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    L 
+    &amp;= 
+    -\log\left[ p(+|w, c_{\text{pos}})\prod^K_{i=1} p(-|w, c_{\text{neg}_i}) \right] 
+    &amp; 
+    [\text{Loss function}]
+    \\
+    &amp;=
+    -\left[ \log p(+|w, c_{\text{pos}}) + \sum^K_{i=1} \log p(-|w, c_{\text{neg}_i}) \right] 
+    &amp;
+    \\
+\end{aligned}
+\]</div>
+<p><img alt="png" src="../../images/blog/wordembeddings_10_0.png" /></p>
+<p>Given a word <span class="arithmatex">\(w\)</span> in a document, positive context words are drawn directly from the training data by sampling words that appear within the same window as <span class="arithmatex">\(w\)</span>. 
+Assuming a window size of 2 and the example sentence "This is an example sentence", positive context words for "example" would be "an" and "sentence".</p>
+<p>Negative context words are drawn using a random weighting scheme based on unigram word probabilities.
+In practice, better performance is achieved by using multiple negative context words for each positive context word for a given word <span class="arithmatex">\(w\)</span>, which is why there are <span class="arithmatex">\(K\)</span> negative contexts in the loss function.
+<span class="arithmatex">\(K\)</span>, or the number of negative contexts to use for each postive context of a word <span class="arithmatex">\(w\)</span>, is a word2vec model hyperparameter.
+The negative sampling probability calculation used in the skip-gram negative sampling approach is displayed below.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    c(w) &amp;\rightarrow \text{ Count of word $w$} &amp;\\
+    p_{\alpha}(w) &amp;= \frac{c(w)^{\alpha}}{\sum_{w_i \in W} c(w_i)^{\alpha}} &amp; [\text{Negative sampling probability}]\\
+\end{aligned}
+\]</div>
+<p>The required gradients and paremeter update equations for learning using stochastic gradient descent are shown below. 
+Derivations for each of the displayed gradient calculations can be found in the derivations section of this post.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial L_{\text{CE}}}{\partial w}
+    &amp;=
+    c_{\text{pos}} \left[\sigma(c_{\text{pos}} \cdot w) - 1\right] +
+    \sum^K_{i=1} c_{\text{neg}_i} \sigma(c_{\text{neg}_i} \cdot w)
+    &amp;
+    [\text{Gradient wrt $w$}]
+    \\
+    \frac{\partial L_{\text{CE}}}{\partial c_{\text{pos}}}
+    &amp;=
+    w [\sigma(c_{\text{pos}} \cdot w) - 1]
+    &amp;
+    [\text{Gradient wrt $c_{\text{pos}}$}]
+    \\
+    \frac{\partial L_{\text{CE}}}{\partial c_{\text{neg}_i}}
+    &amp;=
+    w \sigma(c_{\text{neg}_i} \cdot w)
+    &amp;
+    [\text{Gradient wrt $c_{\text{neg}_i}$}]
+    \\
+    w 
+    &amp;= 
+    w - \alpha \frac{\partial L_{\text{CE}}}{\partial w}
+    &amp;
+    [\text{$w$ update}]
+    \\
+    c_{\text{pos}} 
+    &amp;= 
+    c_{\text{pos}} - \alpha \frac{\partial L_{\text{CE}}}{\partial c_{\text{pos}}}
+    &amp;
+    [\text{$c_{\text{pos}}$ update}]
+    \\
+    c_{\text{neg}_i} 
+    &amp;= 
+    c_{\text{neg}_i} - \alpha \frac{\partial L_{\text{CE}}}{\partial c_{\text{neg}_i}}
+    &amp;
+    [\text{$c_{\text{neg}_i}$ update}]
+    \\
+\end{aligned}
+\]</div>
+<h3>Code</h3>
+<p>Code for a word2vec embedding generator is shown in the block below</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">trange</span><span class="p">,</span> <span class="n">tqdm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">getUnigramProbs</span><span class="p">(</span><span class="n">dataset</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.75</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate unigram probabilities for all words in dataset. Probabilities</span>
+<span class="sd">        are weighted to increase the probability of the rarest words</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dataset: list of strings</span>
+<span class="sd">        alpha: weighting hypterparameter</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list of vocabulary terms sorted by highest to lowest probability</span>
+<span class="sd">        list of probabilities corresponding to the list of vocabulary terms</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Collect unigram counts</span>
+    <span class="n">probs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Calculating Unigram Probabilities&#39;</span><span class="p">):</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">words</span><span class="p">:</span> 
+            <span class="n">probs</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">probs</span> <span class="k">else</span> <span class="mi">1</span>
+
+    <span class="c1"># Transform counts into probabilities</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">probs</span><span class="p">:</span> <span class="n">total</span> <span class="o">+=</span> <span class="n">probs</span><span class="p">[</span><span class="n">word</span><span class="p">]</span><span class="o">**</span><span class="n">alpha</span>
+    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">probs</span><span class="p">:</span> <span class="n">probs</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">probs</span><span class="p">[</span><span class="n">word</span><span class="p">]</span><span class="o">**</span><span class="n">alpha</span><span class="p">)</span> <span class="o">/</span> <span class="n">total</span>
+
+    <span class="c1"># Sort vocabulary by probabilities</span>
+    <span class="n">probs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">vocab</span><span class="p">,</span> <span class="n">probs</span> <span class="o">=</span> <span class="p">[</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">probs</span><span class="p">],</span> <span class="p">[</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">probs</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">vocab</span><span class="p">,</span> <span class="n">probs</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">csim</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate cosine similarity between two vectors</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">num</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">den</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">num</span> <span class="o">/</span> <span class="n">den</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">WeightedSampler</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Implementation of Walker&#39;s Alias method for weighted random sampling</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">probs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize weighted sampler class</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vocab: list of vocabulary words</span>
+<span class="sd">            probs: list of unigram probabilities for each word</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">buckets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRandomSamplingBuckets</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">probs</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tprob</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">initializeBuckets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">buckets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">tprob</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize list of buckets into one of overfull, underfull and full</span>
+<span class="sd">            categories. Buckets are dictionaries containing two vocabulary words</span>
+<span class="sd">            &#39;w1&#39; and &#39;w2&#39;, as well as a splitting probability &#39;s&#39;, and a sum of</span>
+<span class="sd">            probabilities &#39;t&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            buckets: list of buckets</span>
+<span class="sd">            tprob: the total probability that each bucket must represent</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list of buckets that are full</span>
+<span class="sd">            list of buckets that are underfull</span>
+<span class="sd">            list of buckets that are overfull</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">full</span><span class="p">,</span> <span class="n">underfull</span><span class="p">,</span> <span class="n">overfull</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+
+        <span class="k">while</span> <span class="n">buckets</span><span class="p">:</span>
+            <span class="n">cur</span> <span class="o">=</span> <span class="n">buckets</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">cur</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">tprob</span><span class="p">:</span>
+                <span class="n">full</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">cur</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">tprob</span><span class="p">:</span>
+                <span class="n">underfull</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">overfull</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">full</span><span class="p">,</span> <span class="n">underfull</span><span class="p">,</span> <span class="n">overfull</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">getRandomSamplingBuckets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">probs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">tprob</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Reorganize buckets until each bucket contains two vocabulary words</span>
+<span class="sd">            and all buckets have an equivalent total probability. Buckets are</span>
+<span class="sd">            dictionaries containing two vocabulary words &#39;w1&#39; and &#39;w2&#39;, as well</span>
+<span class="sd">            as a splitting probability &#39;s&#39;, and a sum of probabilities &#39;t&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vocab: list of vocabulary words</span>
+<span class="sd">            probs: list of unigram probabilities for each word</span>
+<span class="sd">            tprob: the total probability that each bucket must represent</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list of buckets s.t. all buckets have two words and the same total probability</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">buckets</span> <span class="o">=</span> <span class="p">[</span> <span class="p">{</span><span class="s1">&#39;w1&#39;</span><span class="p">:</span> <span class="n">vocab</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="s1">&#39;w2&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span> <span class="n">probs</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="n">probs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="p">}</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">))</span> <span class="p">]</span>
+        <span class="n">full</span><span class="p">,</span> <span class="n">underfull</span><span class="p">,</span> <span class="n">overfull</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initializeBuckets</span><span class="p">(</span><span class="n">buckets</span><span class="p">,</span> <span class="n">tprob</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="n">underfull</span><span class="p">:</span>
+            <span class="n">under</span> <span class="o">=</span> <span class="n">underfull</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">over</span> <span class="o">=</span> <span class="n">overfull</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+
+            <span class="n">under</span><span class="p">[</span><span class="s1">&#39;w2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">over</span><span class="p">[</span><span class="s1">&#39;w1&#39;</span><span class="p">]</span>
+            <span class="n">under</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tprob</span> 
+            <span class="n">full</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">under</span><span class="p">)</span>
+
+            <span class="n">over</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">over</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">tprob</span> <span class="o">-</span> <span class="n">under</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">])</span>
+            <span class="n">over</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">over</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">tprob</span> <span class="o">-</span> <span class="n">under</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">over</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">tprob</span><span class="p">:</span> 
+                <span class="n">full</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">over</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">over</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">tprob</span><span class="p">:</span> 
+                <span class="n">underfull</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">over</span><span class="p">)</span>                
+
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="n">overfull</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">over</span><span class="p">)</span>
+
+        <span class="n">full</span> <span class="o">+=</span> <span class="n">overfull</span>
+        <span class="k">return</span> <span class="n">full</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">generateWord</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Generate randomly sampled word </span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            randomly sampled word as string  </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">bucket</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buckets</span><span class="p">)</span>
+        <span class="n">splitval</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tprob</span><span class="p">)</span>
+
+        <span class="n">word</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">splitval</span> <span class="o">&gt;=</span> <span class="n">bucket</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">]:</span>
+            <span class="n">word</span> <span class="o">=</span> <span class="n">bucket</span><span class="p">[</span><span class="s1">&#39;w2&#39;</span><span class="p">]</span>                
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">word</span> <span class="o">=</span> <span class="n">bucket</span><span class="p">[</span><span class="s1">&#39;w1&#39;</span><span class="p">]</span>                
+
+        <span class="k">return</span> <span class="n">word</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Windows</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Iterator for sequence of windows on list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">wsize</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate Windows class</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            items: list to create windows form</span>
+<span class="sd">            wsize: total number of items to account for on either side of item</span>
+<span class="sd">                Given the list [&#39;this&#39;, &#39;is&#39;, &#39;a&#39;, &#39;test&#39;] with a wsize of 1 the</span>
+<span class="sd">                Windows class will return the following windows in a for loop:</span>
+<span class="sd">                    [&#39;this&#39;, &#39;is&#39;]</span>
+<span class="sd">                    [&#39;this&#39;, &#39;is&#39;, &#39;a&#39;]</span>
+<span class="sd">                    [&#39;is&#39;, &#39;a&#39;, &#39;test&#39;]</span>
+<span class="sd">                    [&#39;a&#39;, &#39;test&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="o">-</span><span class="p">((</span><span class="n">wsize</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="p">((</span><span class="n">wsize</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="n">items</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">cidx</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns iterator</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return next available window of list</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            window of items as a list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cidx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">):</span>
+                <span class="n">seq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">:]</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">seq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">]</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">seq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cidx</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="n">seq</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">StopIteration</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Word2Vec</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Implementation of Word2Vec word embeddings using skip-gram negative</span>
+<span class="sd">        sampling</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">probs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Instantiate word2vec class</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vocab: list of vocabulary words</span>
+<span class="sd">            probs: unigram probabilities of each vocabulary word</span>
+<span class="sd">            d: size of embeddings</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">),</span> <span class="n">d</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">),</span> <span class="n">d</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">WeightedSampler</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">probs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span> <span class="o">=</span> <span class="n">vocab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vdict</span> <span class="o">=</span> <span class="p">{</span> <span class="n">vocab</span><span class="p">[</span><span class="n">idx</span><span class="p">]:</span> <span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">))</span> <span class="p">}</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">document</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Split document into tokens on white spaces</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            document: string to parse</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list of parsed tokens </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vdict</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">document</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">corpus</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">wsize</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Train word2vec model</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            corpus: list of document strings to train on</span>
+<span class="sd">            epochs: number of passes to take over training corpus</span>
+<span class="sd">            wsize: size of window to examine for skip-grams</span>
+<span class="sd">            k: number of negative samples to consider for each positive sample</span>
+<span class="sd">            alpha: learning rate</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">document</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">corpus</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Training Word2Vec Model&#39;</span><span class="p">):</span>
+                <span class="n">words</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+
+                <span class="n">cidx</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">Windows</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">wsize</span><span class="p">):</span>
+                    <span class="n">cpi</span> <span class="o">=</span> <span class="n">seq</span><span class="p">[:</span><span class="n">cidx</span><span class="p">]</span> <span class="o">+</span> <span class="n">seq</span><span class="p">[</span><span class="n">cidx</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+                    <span class="n">wi</span> <span class="o">=</span> <span class="p">[</span><span class="n">words</span><span class="p">[</span><span class="n">cidx</span><span class="p">]]</span>
+
+                    <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cpi</span><span class="p">:</span>
+                        <span class="n">cni</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vdict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">generateWord</span><span class="p">()]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">weightUpdate</span><span class="p">(</span><span class="n">wi</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">cni</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
+
+                    <span class="n">cidx</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">weightUpdate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wi</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">pi</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">cni</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update word2vec weights</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            wi: list of index for word being trained on</span>
+<span class="sd">            pi: list of index for positive examples</span>
+<span class="sd">            cni: list of indices for negative examples</span>
+<span class="sd">            alpha: learning rate</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Dot products of positive examples and word and negative examples and word</span>
+        <span class="n">cpw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,kj-&gt;i&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">[[</span><span class="n">pi</span><span class="p">],</span> <span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">wi</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">cnw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,kj-&gt;i&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">[</span><span class="n">cni</span><span class="p">,</span> <span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">wi</span><span class="p">,</span> <span class="p">:])</span>
+
+        <span class="c1"># Sigmoid function run on dot products</span>
+        <span class="n">scpw</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">cpw</span><span class="p">)))</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">scnw</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">cnw</span><span class="p">)))[:,</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="c1"># Gradient for matrix w</span>
+        <span class="n">dwa</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">[[</span><span class="n">pi</span><span class="p">],</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">scpw</span>
+        <span class="n">dwb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">[</span><span class="n">cni</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">scnw</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">dw</span> <span class="o">=</span> <span class="n">dwa</span> <span class="o">+</span> <span class="n">dwb</span>
+
+        <span class="c1"># Gradients for matrix c</span>
+        <span class="n">dcp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">wi</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">scpw</span>
+        <span class="n">dcn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">wi</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">scnw</span>
+
+        <span class="c1"># Weight updates using calculated gradients</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">wi</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">wi</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">dw</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">[[</span><span class="n">pi</span><span class="p">],</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">[[</span><span class="n">pi</span><span class="p">],</span> <span class="p">:]</span> <span class="o">-</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">dcp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">[</span><span class="n">cni</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">[</span><span class="n">cni</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">dcn</span><span class="p">)</span>
+</code></pre></div>
+
+<h3>Derivations</h3>
+<p>Derivative of loss with respect to <span class="arithmatex">\(w\)</span>:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial L_{\text{CE}}}{\partial w}
+    &amp;=
+    -\left[
+        \log p(+|w, c_{\text{pos}}) +
+        \sum^K_{i=1} \log p(-|w, c_{\text{neg}_i})
+    \right]
+    &amp;
+    \color{red}{\text{EQ 1}}
+    \\
+    &amp;=
+    -\frac{\partial}{\partial w}
+    \left[
+        \log p(+|w, c_{\text{pos}}) +
+        \sum^K_{i=1} \log \left[1 - p(+|w, c_{\text{neg}_i})\right]
+    \right]
+    \\
+    &amp;=
+    -
+    \left[
+        \frac{\partial}{\partial w} \log p(+|w, c_{\text{pos}}) +
+        \sum^K_{i=1} \frac{\partial}{\partial w} \log \left[1 - p(+|w, c_{\text{neg}_i})\right]
+    \right]
+    \\
+    &amp;=
+    -
+    \left[
+        [\color{red}{\text{EQ 2}}] +
+        \sum^K_{i=1} [\color{red}{\text{EQ 3}}]
+    \right]
+    \\
+    &amp;=
+    -
+    \left[
+        c_{\text{pos}} \left[1 - \sigma(c_{\text{pos}} \cdot w)\right] +
+        \sum^K_{i=1} -c_{\text{neg}_i} \sigma(c_{\text{neg}_i} \cdot w)
+    \right]
+    \\
+    &amp;=
+    c_{\text{pos}} \left[\sigma(c_{\text{pos}} \cdot w) - 1\right] +
+    \sum^K_{i=1} c_{\text{neg}_i} \sigma(c_{\text{neg}_i} \cdot w)
+    \\
+    \frac{\partial}{\partial w} \log p(+|w, c_{\text{pos}})
+    &amp;=
+    \frac{\partial}{\partial w} \log \sigma(c_{\text{pos}} \cdot w)
+    &amp;
+    \color{red}{\text{EQ 2}}
+    \\
+    &amp;=
+    \frac{1}{\sigma(c_{\text{pos}} \cdot w)}
+    \frac{\partial}{\partial w} \sigma(c_{\text{pos}} \cdot w)
+    \\
+    &amp;=
+    \frac{1}{\sigma(c_{\text{pos}} \cdot w)}
+    [\color{red}{\text{EQ 4}}]
+    \\
+    &amp;=
+    \frac{1}{\sigma(c_{\text{pos}} \cdot w)}
+    \left[
+        c_{\text{pos}}
+        \sigma(c_{\text{pos}} \cdot w)
+        \left[1 - \sigma(c_{\text{pos}} \cdot w)\right]
+    \right]
+    \\
+    &amp;=
+    \frac{
+        c_{\text{pos}}
+        \sigma(c_{\text{pos}} \cdot w)
+        \left[1 - \sigma(c_{\text{pos}} \cdot w)\right]
+    }{\sigma(c_{\text{pos}} \cdot w)}
+    \\
+    &amp;=
+    c_{\text{pos}} \left[1 - \sigma(c_{\text{pos}} \cdot w)\right]
+    \\
+    \frac{\partial}{\partial w} \log \left[1 - p(+|w, c_{\text{neg}_i})\right]
+    &amp;=
+    \frac{\partial}{\partial w} \log \left[1 - \sigma(c_{\text{neg}_i} \cdot w)\right]
+    &amp;
+    \color{red}{\text{EQ 3}}
+    \\
+    &amp;=
+    \frac{1}{1 - \sigma(c_{\text{neg}_i} \cdot w)}
+    \frac{\partial}{\partial w} \left[1 - \sigma(c_{\text{neg}_i} \cdot w)\right]
+    \\
+    &amp;=
+    \frac{1}{1 - \sigma(c_{\text{neg}_i} \cdot w)}
+    \frac{\partial}{\partial w} \left[-\sigma(c_{\text{neg}_i} \cdot w)\right]
+    \\
+    &amp;=
+    \frac{-1}{1 - \sigma(c_{\text{neg}_i} \cdot w)}
+    \frac{\partial}{\partial w} \left[\sigma(c_{\text{neg}_i} \cdot w)\right]
+    \\
+    &amp;=
+    \frac{-1}{1 - \sigma(c_{\text{neg}_i} \cdot w)}
+    [\color{red}{\text{EQ 4}}]
+    \\
+    &amp;=
+    \frac{-1}{1 - \sigma(c_{\text{neg}_i} \cdot w)}
+    \left[
+        c_{\text{neg}_i}
+        \sigma(c_{\text{neg}_i} \cdot w)
+        [1 - \sigma(c_{\text{neg}_i} \cdot w)]
+    \right]
+    \\
+    &amp;=
+    \frac{
+        -c_{\text{neg}_i}
+        \sigma(c_{\text{neg}_i} \cdot w)
+    [1 - \sigma(c_{\text{neg}_i} \cdot w)]
+    }{1 - \sigma(c_{\text{neg}_i} \cdot w)}
+    \\
+    &amp;=
+    -c_{\text{neg}_i} \sigma(c_{\text{neg}_i} \cdot w)
+    \\
+    \frac{\partial}{\partial w} \sigma(c \cdot w)
+    &amp;=
+    \frac{\partial}{\partial w} 
+    \frac{1}{1 + e^{-c \cdot w}}
+    &amp;
+    \color{red}{\text{EQ 4}}
+    \\
+    &amp;=
+    \frac{\partial}{\partial w} 
+    [1 + e^{-c \cdot w}]^{-1}
+    \\
+    &amp;=
+    -[1 + e^{-c \cdot w}]^{-2}
+    \frac{\partial}{\partial w} 
+    [1 + e^{-c \cdot w}]
+    \\
+    &amp;=
+    \frac{-1}{[1 + e^{-c \cdot w}]^{2}}
+    \frac{\partial}{\partial w} 
+    [1 + e^{-c \cdot w}]
+    \\
+    &amp;=
+    \frac{-1}{[1 + e^{-c \cdot w}]^{2}}
+    \frac{\partial}{\partial w} 
+    e^{-c \cdot w}
+    \\
+    &amp;=
+    \frac{-e^{-c \cdot w}}{[1 + e^{-c \cdot w}]^{2}}
+    \frac{\partial}{\partial w} 
+    [-c \cdot w]
+    \\
+    &amp;=
+    \frac{c e^{-c \cdot w}}{[1 + e^{-c \cdot w}]^{2}}
+    \\
+    &amp;=
+    c
+    \left[\frac{1}{1 + e^{-c \cdot w}}\right]
+    \left[\frac{e^{-c \cdot w}}{1 + e^{-c \cdot w}}\right]
+    \\
+    &amp;=
+    c
+    \sigma(c \cdot w)
+    \left[\frac{e^{-c \cdot w}}{1 + e^{-c \cdot w}}\right]
+    \\
+    &amp;=
+    c
+    \sigma(c \cdot w)
+    \left[ \frac{1 + e^{-c \cdot w} - 1}{1 + e^{-c \cdot w}} \right]
+    \\
+    &amp;=
+    c
+    \sigma(c \cdot w)
+    \left[ 
+        \frac{1 + e^{-c \cdot w}}{1 + e^{-c \cdot w}} -
+        \frac{1}{1 + e^{-c \cdot w}} 
+    \right]
+    \\
+    &amp;=
+    c
+    \sigma(c \cdot w)
+    \left[1 - \sigma(c \cdot w)\right]
+    \\
+\end{aligned}
+\]</div>
+<p>Derivative of loss with respect to <span class="arithmatex">\(c_{\text{pos}}\)</span> </p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial L_{\text{CE}}}{\partial c_{\text{pos}}}
+    &amp;=
+    -\frac{\partial}{\partial c_{\text{pos}}}
+    \left[
+        \log p(+|w, c_{\text{pos}}) + 
+        \sum^K_{i=1} \log p(-|w, c_{\text{neg}_i})
+    \right]
+    &amp;
+    \color{red}{\text{EQ 1}}
+    \\
+    &amp;= 
+    -\left[
+        \frac{\partial}{\partial c_{\text{pos}}} \log p(+|w, c_{\text{pos}}) + 
+        \sum^K_{i=1} \frac{\partial}{\partial c_{\text{pos}}} \log p(-|w, c_{\text{neg}_i})
+    \right]
+    \\
+    &amp;= 
+    -\left[
+        \frac{\partial}{\partial c_{\text{pos}}} \log p(+|w, c_{\text{pos}})
+    \right]
+    \\
+    &amp;= 
+    -\left[
+        \frac{\partial}{\partial c_{\text{pos}}} \log \sigma(c_{\text{pos}} \cdot w)
+    \right]
+    \\
+    &amp;= 
+    -\left[
+        \frac{1}{\sigma(c_{\text{pos}} \cdot w)}
+        \frac{\partial}{\partial c_{\text{pos}}} \sigma(c_{\text{pos}} \cdot w)
+    \right]
+    \\
+    &amp;= 
+    -\left[
+        \frac{1}{\sigma(c_{\text{pos}} \cdot w)}
+        [\color{red}{\text{EQ 2}}]
+    \right]
+    \\
+    &amp;= 
+    -\left[
+        \frac{1}{\sigma(c_{\text{pos}} \cdot w)}
+        [w \sigma(c_{\text{pos}} \cdot w) \left[ 1 - \sigma(c_{\text{pos}} \cdot w) \right]]
+    \right]
+    \\
+    &amp;= 
+    -\left[
+        \frac{
+            w \sigma(c_{\text{pos}} \cdot w) \left[ 1 - \sigma(c_{\text{pos}} \cdot w) \right]
+        }{\sigma(c_{\text{pos}} \cdot w)}
+    \right]
+    \\
+    &amp;= 
+    -\left[ w \left[ 1 - \sigma(c_{\text{pos}} \cdot w) \right] \right]
+    \\
+    &amp;= 
+    w [\sigma(c_{\text{pos}} \cdot w) - 1]
+    \\
+    \frac{\partial}{\partial c_{\text{pos}}} \sigma(c_{\text{pos}} \cdot w)
+    &amp;=
+    \frac{\partial}{\partial c_{\text{pos}}} 
+    \frac{1}{1 + e^{-c_{\text{pos}} \cdot w}}
+    &amp;
+    \color{red}{\text{EQ 2}}
+    \\
+    &amp;=
+    \frac{\partial}{\partial c_{\text{pos}}} 
+    [1 + e^{-c_{\text{pos}} \cdot w}]^{-1}
+    \\
+    &amp;=
+    -[1 + e^{-c_{\text{pos}} \cdot w}]^{-2}
+    \frac{\partial}{\partial c_{\text{pos}}} 
+    [1 + e^{-c_{\text{pos}} \cdot w}]
+    \\
+    &amp;=
+    \frac{-1}{[1 + e^{-c_{\text{pos}} \cdot w}]^{2}}
+    \frac{\partial}{\partial c_{\text{pos}}} 
+    [1 + e^{-c_{\text{pos}} \cdot w}]
+    \\
+    &amp;=
+    \frac{-1}{[1 + e^{-c_{\text{pos}} \cdot w}]^{2}}
+    \frac{\partial}{\partial c_{\text{pos}}} 
+    e^{-c_{\text{pos}} \cdot w}
+    \\
+    &amp;=
+    \frac{-e^{-c_{\text{pos}} \cdot w}}{[1 + e^{-c_{\text{pos}} \cdot w}]^{2}}
+    \frac{\partial}{\partial c_{\text{pos}}} 
+    [-c_{\text{pos}} \cdot w]
+    \\
+    &amp;=
+    \frac{we^{-c_{\text{pos}} \cdot w}}{[1 + e^{-c_{\text{pos}} \cdot w}]^{2}}
+    \\
+    &amp;=
+    w
+    \left[\frac{1}{1 + e^{-c_{\text{pos}} \cdot w}}\right]
+    \left[\frac{e^{-c_{\text{pos}} \cdot w}}{1 + e^{-c_{\text{pos}} \cdot w}}\right]
+    \\
+    &amp;=
+    w
+    \sigma(c_{\text{pos}} \cdot w)
+    \left[ \frac{e^{-c_{\text{pos}} \cdot w}}{1 + e^{-c_{\text{pos}} \cdot w}} \right]
+    \\
+    &amp;=
+    w
+    \sigma(c_{\text{pos}} \cdot w)
+    \left[ \frac{1 + e^{-c_{\text{pos}} \cdot w} - 1}{1 + e^{-c_{\text{pos}} \cdot w}} \right]
+    \\
+    &amp;=
+    w
+    \sigma(c_{\text{pos}} \cdot w)
+    \left[
+        \frac{1 + e^{-c_{\text{pos}} \cdot w}}{1 + e^{-c_{\text{pos}} \cdot w}} -
+        \frac{1}{1 + e^{-c_{\text{pos}} \cdot w}}
+    \right]
+    \\
+    &amp;=
+    w \sigma(c_{\text{pos}} \cdot w) \left[ 1 - \sigma(c_{\text{pos}} \cdot w) \right]
+    \\
+\end{aligned}
+\]</div>
+<p>Derivative of loss with respect to <span class="arithmatex">\(c_{\text{neg}_i}\)</span> </p>
+<div class="arithmatex">\[
+\begin{aligned}
+    \frac{\partial L_{\text{CE}}}{\partial c_{\text{neg}_i}}
+    &amp;=
+    -\frac{\partial}{\partial c_{\text{neg}_i}}
+    \left[
+        \log p(+|w, c_{\text{pos}}) + 
+        \sum^K_{j=1} \log p(-|w, c_{\text{neg}_j})
+    \right]
+    &amp;
+    \color{red}{\text{EQ 1}}
+    \\
+    &amp;=
+    -
+    \left[
+        \frac{\partial}{\partial c_{\text{neg}_i}} \log p(+|w, c_{\text{pos}}) + 
+        \frac{\partial}{\partial c_{\text{neg}_i}} \sum^K_{j=1} \log p(-|w, c_{\text{neg}_j})
+    \right]
+    \\
+    &amp;=
+    -
+    \left[
+        \frac{\partial}{\partial c_{\text{neg}_i}} 
+        \sum^K_{j=1} \log p(-|w, c_{\text{neg}_j})
+    \right]
+    \\
+    &amp;=
+    -
+    \left[
+        \frac{\partial}{\partial c_{\text{neg}_i}} 
+        \sum^K_{j=1} \log [1 - p(+|w, c_{\text{neg}_j})]
+    \right]
+    \\
+    &amp;=
+    -
+    \left[
+        \frac{\partial}{\partial c_{\text{neg}_i}} 
+        \log [1 - p(+|w, c_{\text{neg}_i})]
+    \right]
+    \\
+    &amp;=
+    - \left[
+        \frac{\partial}{\partial c_{\text{neg}_i}} 
+        \log [1 - \sigma(c_{\text{neg}_i} \cdot w)]
+    \right]
+    \\
+    &amp;=
+    - \left[
+        \frac{1}{1 - \sigma(c_{\text{neg}_i} \cdot w)}
+        \frac{\partial}{\partial c_{\text{neg}_i}} 
+        [1 - \sigma(c_{\text{neg}_i} \cdot w)]
+    \right]
+    \\
+    &amp;=
+    - \left[
+        \frac{1}{1 - \sigma(c_{\text{neg}_i} \cdot w)}
+        \frac{\partial}{\partial c_{\text{neg}_i}} 
+        -\sigma(c_{\text{neg}_i} \cdot w)
+    \right]
+    \\
+    &amp;=
+    \frac{1}{1 - \sigma(c_{\text{neg}_i} \cdot w)}
+    \frac{\partial}{\partial c_{\text{neg}_i}} 
+    \sigma(c_{\text{neg}_i} \cdot w)
+    \\
+    &amp;=
+    \frac{1}{1 - \sigma(c_{\text{neg}_i} \cdot w)}
+    [\color{red}{\text{EQ 2}}]
+    \\
+    &amp;=
+    \frac{1}{1 - \sigma(c_{\text{neg}_i} \cdot w)}
+    \left[w \sigma(c_{\text{neg}_i} \cdot w) \left[ 1 - \sigma(c_{\text{neg}_i} \cdot w) \right]\right]
+    \\
+    &amp;=
+    \frac{
+        w \sigma(c_{\text{neg}_i} \cdot w) \left[ 1 - \sigma(c_{\text{neg}_i} \cdot w) \right]
+    }{1 - \sigma(c_{\text{neg}_i} \cdot w)}
+    \\
+    &amp;=
+    w \sigma(c_{\text{neg}_i} \cdot w)
+    \\
+    \frac{\partial}{\partial c_{\text{neg}_i}} \sigma(c_{\text{neg}_i} \cdot w)
+    &amp;=
+    \frac{\partial}{\partial c_{\text{neg}_i}} 
+    \frac{1}{1 + e^{-c_{\text{neg}_i} \cdot w}}
+    &amp;
+    \color{red}{\text{EQ 2}}
+    \\
+    &amp;=
+    \frac{\partial}{\partial c_{\text{neg}_i}} 
+    [1 + e^{-c_{\text{neg}_i} \cdot w}]^{-1}
+    \\
+    &amp;=
+    -[1 + e^{-c_{\text{neg}_i} \cdot w}]^{-2}
+    \frac{\partial}{\partial c_{\text{neg}_i}} 
+    [1 + e^{-c_{\text{neg}_i} \cdot w}]
+    \\
+    &amp;=
+    \frac{-1}{[1 + e^{-c_{\text{neg}_i} \cdot w}]^{2}}
+    \frac{\partial}{\partial c_{\text{neg}_i}} 
+    [1 + e^{-c_{\text{neg}_i} \cdot w}]
+    \\
+    &amp;=
+    \frac{-1}{[1 + e^{-c_{\text{neg}_i} \cdot w}]^{2}}
+    \frac{\partial}{\partial c_{\text{neg}_i}} 
+    e^{-c_{\text{neg}_i} \cdot w}
+    \\
+    &amp;=
+    \frac{-e^{-c_{\text{neg}_i} \cdot w}}{[1 + e^{-c_{\text{neg}_i} \cdot w}]^{2}}
+    \frac{\partial}{\partial c_{\text{neg}_i}} 
+    [-c_{\text{neg}_i} \cdot w]
+    \\
+    &amp;=
+    \frac{we^{-c_{\text{neg}_i} \cdot w}}{[1 + e^{-c_{\text{neg}_i} \cdot w}]^{2}}
+    \\
+    &amp;=
+    w
+    \left[\frac{1}{1 + e^{-c_{\text{neg}_i} \cdot w}}\right]
+    \left[\frac{e^{-c_{\text{neg}_i} \cdot w}}{1 + e^{-c_{\text{neg}_i} \cdot w}}\right]
+    \\
+    &amp;=
+    w
+    \sigma(c_{\text{neg}_i} \cdot w)
+    \left[ \frac{e^{-c_{\text{neg}_i} \cdot w}}{1 + e^{-c_{\text{neg}_i} \cdot w}} \right]
+    \\
+    &amp;=
+    w
+    \sigma(c_{\text{neg}_i} \cdot w)
+    \left[ \frac{1 + e^{-c_{\text{neg}_i} \cdot w} - 1}{1 + e^{-c_{\text{neg}_i} \cdot w}} \right]
+    \\
+    &amp;=
+    w
+    \sigma(c_{\text{neg}_i} \cdot w)
+    \left[
+        \frac{1 + e^{-c_{\text{neg}_i} \cdot w}}{1 + e^{-c_{\text{neg}_i} \cdot w}} -
+        \frac{1}{1 + e^{-c_{\text{neg}_i} \cdot w}}
+    \right]
+    \\
+    &amp;=
+    w \sigma(c_{\text{neg}_i} \cdot w) \left[ 1 - \sigma(c_{\text{neg}_i} \cdot w) \right]
+    \\
+\end{aligned}
+\]</div>
+<h3>Resources</h3>
+<ul>
+<li>Jurafsky, Daniel, and James H. Martin. Speech and Language Processing: An Introduction to Natural Language Processing, Computational Linguistics, and Speech Recognition. Pearson, 2020.</li>
+</ul>
+    <script>
+      window.addEventListener('load', () => {
+        document.querySelectorAll('.arithmatex').forEach(el => {
+          const parentWidth = el.parentElement.clientWidth;
+          if (el.scrollWidth > parentWidth) {
+            const scale = parentWidth / (el.scrollWidth * 1.05);
+            el.style.transform = `scale(${scale})`;
+            el.style.transformOrigin = 'left center';
+            el.style.display = 'inline-block';
+            el.style.width = `${parentWidth}px`;
+          }
+        });
+      });
+    </script>
+</body>
+</html>
