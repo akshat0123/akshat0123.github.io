@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Experience</title>
+    <link rel="stylesheet" href="css/standard.css">
+</head>
+<body>
+    <a href="index.html">Home</a>
+    <h3>Experience</h3>
+    <ul>
+        {% for job in experience %}
+            <li>
+                <b>{{ job.employer }}</b><br>
+                {{ job.position }}<br>
+                {{ job.dates }}
+                <ul>
+                    {% for responsibility in job.description %}
+                        <li>{{ responsibility }}</li>
+                    {% endfor %}
+                </ul>
+            </li><br>
+        {% endfor %}
+    </ul>
+</body>
+</html>

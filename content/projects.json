@@ -1,0 +1,90 @@
+{
+    "projects": [
+        {
+            "title": "WhisTLE: Deeply Supervised, Text-Only Domain Adaptation for Pretrained Speech Recognition Transformers",
+            "authors": [
+                "Akshat Pandey",
+                "Karun Kumar",
+                "Raphael Tang"
+            ],
+            "location": "Proceedings of the Conference on Empirical Methods in Natural Language Processing: Main Conference. 2026",
+            "link": "https://arxiv.org/abs/2509.10452"
+        },
+        {
+            "title": "What the DAAM: Interpreting Stable Diffusion Using Cross Attention",
+            "authors": [
+                "Raphael Tang", 
+                "...", 
+                "Akshat Pandey", 
+                "...", 
+                "Ferhan Ture"
+            ],
+            "location": "Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2023",
+            "link": "https://arxiv.org/abs/2210.04885"
+        },
+        {
+            "title": "SpeechNet: Weakly Supervised, End-to-End Speech Recognition at Industrial Scale",
+            "authors": [
+                "Raphael Tang", 
+                "...", 
+                "Akshat Pandey", 
+                "...", 
+                "Jimmy Lin"
+            ],
+            "location": "Proceedings of the Conference on Empirical Methods in Natural Language Processing: Industry Track. 2022",
+            "link": "https://arxiv.org/abs/2211.11740"
+        },
+        {
+            "title": "Disparate Impact of Artificial Intelligence Bias in Ridehailing Economy's Price Discrimination Algorithms",
+            "authors": [ 
+                "Akshat Pandey",
+                "Aylin Caliskan "
+            ],
+            "location": "AAAI/ACM Conference on Artificial Intelligence, Ethics, and Society. 2021",
+            "link": "https://arxiv.org/abs/2006.04599"
+        },
+        {
+            "title": "Automatically Characterizing Targeted Information Operations Through Biases Present in Discourse on Twitter",
+            "authors": [ 
+                "Autumn Toney",
+                "Akshat Pandey", 
+                "...", 
+                "Aylin Caliskan "
+            ],
+            "location": "IEEE 15th International Conference on Semantic Computing. 2021",
+            "link": "https://arxiv.org/abs/2004.08726"
+        },
+        {
+            "title": "Cytoplasmic synthesis of endogenous Alu complementary DNA via reverse transcription and implications in age-related macular degeneration",
+            "authors": [
+                "Shinichi Fukuda", 
+                "...", 
+                "Akshat Pandey", 
+                "...",
+                "Jayakrishna Ambati "
+            ],
+            "location": "Proceedings of the National Academy of Sciences. 2021",
+            "link": "https://doi.org/10.1073/pnas.2022751118"
+        }, 
+        {
+            "title": "Repurposing anti-inflammasome NRTIs for improving insulin sensitivity and reducing type 2 diabetes development",
+            "authors": [
+                "Jayakrishna Ambati", 
+                "...",
+                "Akshat Pandey", 
+                "...",
+                "Bradley D. Gelfand"
+            ],
+            "location": "Nature Communications 11. 2020",
+            "link": "https://doi.org/10.1038/s41467-020-18528-z"
+        },
+        {
+            "title": "Towards Semantic Search in Building Metadata",
+            "authors": [
+                "Akshat Pandey "
+            ],
+            "location": "Master's Thesis. 2019",
+            "link": "https://doi.org/10.18130/v3-xb0r-wk37"
+        }
+    ]
+}

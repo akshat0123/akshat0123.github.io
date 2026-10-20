@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Projects</title>
+    <link rel="stylesheet" href="css/standard.css">
+</head>
+<body>
+    <a href="index.html">Home</a>
+    <h3>Projects</h3>
+    <ul>
+        {% for project in projects %}
+            <li>
+                <a href={{ project.link }}><b>{{ project.title }}</b></a><br>
+                {{ project.authors| join(', ') }}<br>
+                {{ project.location }}
+            </li><br>
+        {% endfor %}
+    </ul>
+</body>
+</html>
