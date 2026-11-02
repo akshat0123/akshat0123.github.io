@@ -4,7 +4,13 @@
             "employer": "Comcast",
             "position": "Machine Learning Engineer II - IV",
             "dates": "07/21 - Present",
-            "description": []
+            "description": [
+                "Trained and evaluated state-of-the-art deep learning models for automatic speech recognition, including Whisper, Canary, Wav2Vec2, HuBERT, and Conformer",
+                "Created pipelines for data collection and model training using Databricks ETL and PySpark",
+                "Developed novel approach for text-only training for automatic speech recognition models, resulting in paper (WhisTLE - presented at EMNLP 2026) and patent",
+                "Built agentic workflow for natural-language based automatic speech recognition model bug evaluation, dataset collection, and retraining",
+                "Trained and evaluated state-of-the-art deep learning models for speaker recognition, speaker verification, and voice biometrics, including ECAPA-TDNN"
+            ]
         },
         {
             "employer": "George Washington University, Department of Computer Science",
